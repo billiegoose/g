@@ -1,0 +1,149 @@
+#!/bin/bash
+# I'm writing this in BASH because I hate myself, apparently.
+
+
+
+function list_branches() {
+    git for-each-ref refs/heads --format="%(refname:short)"
+}
+
+function list_remtote_branches() {
+    git for-each-ref refs/heads --format="%(refname:short)"
+}
+case "$1" in
+
+stage)
+if [ -z "$2" ]; then
+    echo Staging all modified files
+    git add -u :/
+else
+    echo Staging "${@:2}"
+    git add "${@:2}"
+fi
+;;
+
+unstage)
+echo Unstaging
+if [ -z "$2" ]; then
+    echo The stage has been reset.
+    git reset HEAD
+else
+    git reset HEAD "${@:2}"
+fi
+;;
+
+reset)
+echo Resetting
+if [ -z "$2" ]; then
+    echo The working directory has been reset.
+    git checkout -f HEAD
+else
+    git checkout "${@:2}"
+fi
+;;
+
+commit)
+echo Committing
+if [ -z "$2" ]; then
+    read -p 'Message: ' msg
+    git commit -m "$msg"
+else
+    git commit -m "$2"
+fi
+;;
+
+branch)
+echo 'Switching to branch'
+if [ -z "$2" ]; then
+    echo '! Specify branch name'
+else
+    git stash # Save branch index state
+    if git rev-parse --verify --quiet "$2" > /dev/null; then
+        git checkout "$2"
+    else
+        git checkout -b "$2"
+    fi
+    git stash pop # Restore branch index state
+fi
+;;
+
+rmbranch)
+echo 'Delete branch'
+if [ -z "$2" ]; then
+    echo '! Specify branch name'
+else
+    git branch -d "$2"
+fi
+;;
+
+update)
+echo Updating
+if [ -z "$2" ]; then
+    git fetch --all
+    # Fast-forward all local branches. I owe a lot to http://stackoverflow.com/a/24451300/2168416
+    current_branch=$(git rev-parse --abbrev-ref HEAD)
+    for local_branch in $(list_branches); do
+        remote=$(git config --get branch.$local_branch.remote)
+        remote_branch=$(git config --get branch.$local_branch.merge | sed 's:refs/heads/::')
+        # Git throws an error if we try the fetch command on the current branch. Sheesh
+        if [ "$current_branch" = "$local_branch" ]; then
+            git merge --ff-only $remote/$remote_branch
+        else
+            git fetch $remote $remote_branch:$local_branch
+        fi
+    done
+else
+    git fetch "${@:2}"
+    for b in "${@:2}"; do
+        git fetch upstream "$b":"$b"
+    done
+fi
+;;
+
+ignore)
+
+;;
+
+status)
+# TODO: figure out how to git config --global color.status always automatically.
+git status \
+| grep -v '# On branch' \
+| grep -v '#   (use "git reset HEAD <file>..." to unstage)' \
+| grep -v '#   (use "git add <file>..." to update what will be committed)' \
+| grep -v '#   (use "git checkout -- <file>..." to discard changes in working directory)' \
+| grep -v '#   (use "git add <file>..." to include in what will be committed)' \
+| grep -v 'nothing added to commit but untracked files present (use "git add" to track)'
+
+;;
+
+diff)
+if [ -z "$2" ]; then
+    echo 'Compare working tree with HEAD'
+    git diff HEAD
+else
+    if [ -z "$3" ]; then
+        if [ "$2" = 'STAGE' ]; then
+            echo 'Compare working tree with stage'
+            git diff
+        else
+            echo "Compare working tree with $2"
+            git diff "$2"
+        fi
+    else
+        if [ "$2" = 'STAGE' ]; then
+            echo "Compare stage with $3"
+            git diff --cached "$3"
+        else
+            echo "Compare $2 with $3"
+            git diff "$2" "$3"
+        fi
+    fi
+fi
+;;
+
+review)
+echo 'Compare stage with HEAD'
+git diff --cached HEAD
+;;
+
+esac
