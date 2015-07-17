@@ -1,0 +1,38 @@
+#!/bin/bash
+list_branches() {
+    git for-each-ref refs/heads --format="%(refname:short)"
+}
+
+_get_complete()
+{
+# Available variables:
+# COMP_LINE COMP_POINT COMP_KEY COMP_TYPE COMP_WORDS COMP_CWORD
+# $1 : name of command whose arguments are being completed
+# $2 : the word being completed
+# $3 : the word preceding the word being completed
+case ${COMP_CWORD} in
+1)
+    commands="branch commit diff fetch ignore reset rmbranch review stage status unstage"
+    COMPREPLY=( $(compgen -W "${commands}" "$2") )
+;;
+2)
+    case "$3" in
+        branch | rmbranch | fetch)
+            commands=$(list_branches)
+            COMPREPLY=( $(compgen -W "${commands}" "$2") )
+        ;;
+        stage | unstage | ignore)
+            COMPREPLY=( $(compgen -A file -X .git "$2") )
+        ;;
+        diff)
+            commands="STAGE"
+            COMPREPLY=( $(compgen -A file -X .git -W "${commands}" "$2") )
+        ;;
+    esac
+;;
+*)
+    COMPREPLY=()
+;;
+esac
+}
+complete -F _get_complete get
