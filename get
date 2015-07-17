@@ -3,11 +3,11 @@
 
 
 
-function list_branches() {
+list_branches() {
     git for-each-ref refs/heads --format="%(refname:short)"
 }
 
-function list_remtote_branches() {
+list_remote_branches() {
     git for-each-ref refs/heads --format="%(refname:short)"
 }
 case "$1" in
