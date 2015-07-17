@@ -84,24 +84,23 @@ fetch)
 echo Updating
 if [ -z "$2" ]; then
     git fetch --all
-    # Fast-forward all local branches. I owe a lot to http://stackoverflow.com/a/24451300/2168416
-    current_branch=$(git rev-parse --abbrev-ref HEAD)
-    for local_branch in $(list_branches); do
-        remote=$(git config --get branch.$local_branch.remote)
-        remote_branch=$(git config --get branch.$local_branch.merge | sed 's:refs/heads/::')
-        # Git throws an error if we try the fetch command on the current branch. Sheesh
-        if [ "$current_branch" = "$local_branch" ]; then
-            git merge --ff-only $remote/$remote_branch
-        else
-            git fetch $remote $remote_branch:$local_branch
-        fi
-    done
+    branches="$(list_branches)"
 else
-    git fetch "${@:2}"
-    for b in "${@:2}"; do
-        git fetch upstream "$b":"$b"
-    done
+    branches = "${@:2}"
+    git fetch "$branches"
 fi
+# Fast-forward local branches. I owe a lot to http://stackoverflow.com/a/24451300/2168416
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+for local_branch in $branches; do
+    remote=$(git config --get branch.$local_branch.remote)
+    remote_branch=$(git config --get branch.$local_branch.merge | sed 's:refs/heads/::')
+    # Git throws an error if we try the fetch command on the current branch. Sheesh
+    if [ "$current_branch" = "$local_branch" ]; then
+        git merge --ff-only $remote/$remote_branch
+    else
+        git fetch $remote $remote_branch:$local_branch
+    fi
+done
 ;;
 
 ignore)

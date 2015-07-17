@@ -29,6 +29,7 @@ get commit %MESSAGE% | git commit -m %MESSAGE%
 get branch %BRANCH% | stashes working tree, creates or switches branch, and checks out branch
 get rmbranch %BRANCH% | git branch -d %BRANCH% *TODO: rename?*
 get fetch | Fetches all remotes and fast-forwards local branches when possible
+get fetch %BRANCHES% | Fetches and fast-forwards the specified branches
 get status | git status
 get review | git diff --cached
 get diff | compare working tree with HEAD (git diff HEAD)
