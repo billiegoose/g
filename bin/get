@@ -1,8 +1,6 @@
 #!/bin/bash
 # I'm writing this in BASH because I hate myself, apparently.
 
-
-
 list_branches() {
     git for-each-ref refs/heads --format="%(refname:short)"
 }
@@ -147,6 +145,32 @@ fi
 review)
 echo 'Compare stage with HEAD'
 git diff --cached HEAD
+;;
+
+push)
+echo 'Pushing'
+# Check to see if upstream is set.
+if git rev-parse --abbrev-ref @{upstream} >/dev/null ; then
+    git push
+else
+    # Get local branch name
+    local_branch=$(git rev-parse --abbrev-ref HEAD)
+    # Check for multiple remotes
+    remote_count=$(git remote show | wc -l)
+    remotes=$(git remote show | tr '\n' ' ' | sed 's/\s*$//g')
+    if [ "$remote_count" = "1" ]; then
+        # If only one remote
+        remote="$remotes"
+    else
+        read -p "Which remote to push? (${remotes}): " remote
+    fi
+    read -p "Choose name for branch on '${remote}' [${local_branch}]: " remote_branch
+    if [ "$remote_branch" = "" ]; then
+        remote_branch="$local_branch"
+    fi
+    echo "I will run git push --set-upstream ${remote} ${remote_branch}"
+    git push --set-upstream ${remote} ${remote_branch}
+fi
 ;;
 
 esac
