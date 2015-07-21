@@ -45,7 +45,7 @@ fi
 ;;
 
 commit)
-echo Committing
+echo "Parent commit: $(git log --abbrev-commit -1 --pretty=format:'%C(bold blue)%s%Creset %Cgreen(%cr)%Creset')"
 if [ -z "$2" ]; then
     read -p 'Message: ' msg
     git commit -m "$msg"
