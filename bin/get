@@ -173,4 +173,23 @@ else
 fi
 ;;
 
+clone)
+# Github username, if available
+github_user=$(git config github.user)
+
+# Turn "username/repo" into full Github URL
+if [[ "$2" =~ ^[^/]+/[^/]+$ ]]
+then
+    url="https://github.com/$2"
+# Turn "repo" into "username/repo" Github URL
+elif [[ "$2" =~ ^[^/]+$ ]] && ! [ -z "$github_user" ]
+then
+    url="https://github.com/${github_user}/$2"
+else
+    url="$2"
+fi
+echo Cloning $url
+git clone "$url"
+;;
+
 esac
