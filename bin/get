@@ -201,4 +201,35 @@ echo Cloning $url
 git clone "$url"
 ;;
 
+squash)
+# I implement squash a little differently than most.
+# 1) Rebase squashing aggregates commit messages, which is usually
+#   counter to the purpose of squashing, which is to hide the fact
+#   that a change took several real commits.
+# 2) Rebasing also deletes commits by default, which is problematic
+#   if you have pushed those commits to the server already.
+# This solution is more gentle in that it creates a new commit with
+# a new commit message containing the same changes as the old
+# series of commits, but doesn't delete the old commits, leaving them
+# as a branch.
+# TODO: check argument is numeric
+if [[ "$2" =~ ^[0-9]+$ ]]
+then
+    echo "Squash the following commits together:"
+    git log --abbrev-commit \
+            --color \
+            --graph \
+            --ancestry-path \
+            --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' \
+            HEAD...HEAD~$2
+    read -p 'Message: ' msg
+    git stash save --include-untracked --quiet 'get-squash autostash'
+    git reset --soft HEAD~$(($2+1))
+    git commit -m "$msg"
+    git stash pop --quiet
+else
+    echo "The second argument is expected to be an integer."
+fi
+;;
+
 esac
