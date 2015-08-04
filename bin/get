@@ -68,13 +68,13 @@ echo 'Switching to branch'
 if [ -z "$2" ]; then
     echo '! Specify branch name'
 else
-    git stash # Save branch index state
+    git stash save --include-untracked --quiet 'get-branch autostash' # Save branch index state
     if git rev-parse --verify --quiet "$2" > /dev/null; then
         git checkout "$2"
     else
         git checkout -b "$2"
     fi
-    git stash pop # Restore branch index state
+    git stash pop --quiet # Restore branch index state
 fi
 ;;
 
