@@ -12,7 +12,7 @@ same control as git but without the headache of its impossible to remember comma
 ### Goals
 * CONSISTANCY
 * Fewer, more orthogonal commands
-* More useful built-in behaviors
+* More useful (and non-destructive) default behaviors
 
 ### Commands
 (bound to get out of date quickly)
@@ -37,6 +37,9 @@ get diff STAGE | compare working tree with stage (git diff)
 get diff %REF% | compare working tree with %REF% (git diff %REF%)
 get diff STAGE %REF% | compare stage with %REF% (git diff --cached %REF%)
 get diff %REFA% %REFB% | compare %REFA% with %REFB% (git diff %REFA% %REFB%)
+get undo commit | git reset --soft HEAD~1
+get push | pushes to upstream. If upstream not set, prompt user to name a remote branch. (If multiple remotes exist, prompt for which remote to use.)
+get clone %PATH% | %PATH% can be a normal url. Paths like "username/repo" will be expanded assuming a Github. Paths with just "repo" will expand to a Github url, if your Github username is stored in git config.
 
 ### TODO
 Now that I've added tab completion, I think "stage" and "status" are too similar.

@@ -54,6 +54,15 @@ else
 fi
 ;;
 
+undo)
+    case "$2" in
+        commit)
+            echo Undoing last commit
+            git reset --soft HEAD~1
+        ;;
+    esac
+;;
+
 branch)
 echo 'Switching to branch'
 if [ -z "$2" ]; then
