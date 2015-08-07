@@ -10,8 +10,17 @@ list_remote_branches() {
 }
 
 case "$1" in
-"")
-echo 'TODO: Display help, or git status if inside a repo'
+"" | status)
+# TODO: Display help if not inside a repo
+# TODO: figure out how to git config --global color.status always automatically.
+git status \
+| grep -v 'On branch' \
+| grep -v '(use "git push" to publish your local commits)' \
+| grep -v '(use "git reset HEAD <file>..." to unstage)' \
+| grep -v '(use "git add <file>..." to update what will be committed)' \
+| grep -v '(use "git checkout -- <file>..." to discard changes in working directory)' \
+| grep -v '(use "git add <file>..." to include in what will be committed)' \
+| grep -v 'nothing added to commit but untracked files present (use "git add" to track)'
 ;;
 
 stage)
@@ -32,6 +41,15 @@ if [ -z "$2" ]; then
 else
     git reset HEAD "${@:2}"
 fi
+;;
+
+add)
+# TODO: make add only add untracked files (useful when auto-completing)
+;;
+
+rm)
+echo Removing
+git rm "$2"
 ;;
 
 reset)
@@ -112,18 +130,6 @@ done
 
 ignore)
 
-;;
-
-status)
-# TODO: figure out how to git config --global color.status always automatically.
-git status \
-| grep -v 'On branch' \
-| grep -v '(use "git push" to publish your local commits)' \
-| grep -v '(use "git reset HEAD <file>..." to unstage)' \
-| grep -v '(use "git add <file>..." to update what will be committed)' \
-| grep -v '(use "git checkout -- <file>..." to discard changes in working directory)' \
-| grep -v '(use "git add <file>..." to include in what will be committed)' \
-| grep -v 'nothing added to commit but untracked files present (use "git add" to track)'
 ;;
 
 diff)
