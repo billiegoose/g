@@ -43,6 +43,39 @@ else
 fi
 ;;
 
+tag)
+echo Tagging
+git tag "$2"
+;;
+
+untag)
+# See if tag exists
+if git rev-parse "$2" >/dev/null 2>&1
+then
+  echo Deleting tag "$2"
+  git tag -d "$2"
+fi
+# Get local branch name
+local_branch=$(git rev-parse --abbrev-ref HEAD)
+# Get associated remote
+remote=$(git config --get branch.$local_branch.remote)
+# If tag is not present on remote, stop here.
+exist=$(git ls-remote --tags "$remote" "$2")
+if [ "$exist" != '' ]
+then
+  # Prompt user to delete on upstream.
+  read -e -p "Would you like to delete the tag on remote '${remote}'? [Y/n]: " deltag
+  deltag=${deltag:-Y}
+  case "$deltag" in
+  [Yy] | [Yy][Ee][Ss] )
+    git push --delete "$remote" "$2"
+  ;;
+  [Nn] | [Nn][Oo] )
+  ;;
+  esac
+fi
+;;
+
 add)
 # TODO: make add only add untracked files (useful when auto-completing)
 ;;
