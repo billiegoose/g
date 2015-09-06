@@ -195,7 +195,7 @@ fi
 
 review)
 echo 'Compare stage with HEAD'
-git diff --cached HEAD
+git diff --cached HEAD --ignore-space-change
 ;;
 
 push)
