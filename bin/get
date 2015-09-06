@@ -127,25 +127,28 @@ git status \
 ;;
 
 diff)
+# Note: we use --ignore-space-change with every diff because
+# changing the amount of indentation of large chunks of code
+# is common in Python and CoffeeScript.
 if [ -z "$2" ]; then
     echo 'Compare working tree with HEAD'
-    git diff HEAD
+    git diff HEAD --ignore-space-change
 else
     if [ -z "$3" ]; then
         if [ "$2" = 'STAGE' ]; then
             echo 'Compare working tree with stage'
-            git diff
+            git diff --ignore-space-change
         else
             echo "Compare working tree with $2"
-            git diff "$2"
+            git diff "$2" --ignore-space-change
         fi
     else
         if [ "$2" = 'STAGE' ]; then
             echo "Compare stage with $3"
-            git diff --cached "$3"
+            git diff --cached "$3" --ignore-space-change
         else
             echo "Compare $2 with $3"
-            git diff "$2" "$3"
+            git diff "$2" "$3" --ignore-space-change
         fi
     fi
 fi
