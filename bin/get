@@ -10,8 +10,17 @@ list_remote_branches() {
 }
 
 case "$1" in
-"")
-echo 'TODO: Display help, or git status if inside a repo'
+"" | status)
+# TODO: Display help if not inside a repo
+# TODO: figure out how to git config --global color.status always automatically.
+git status \
+| grep -v 'On branch' \
+| grep -v '(use "git push" to publish your local commits)' \
+| grep -v '(use "git reset HEAD <file>..." to unstage)' \
+| grep -v '(use "git add <file>..." to update what will be committed)' \
+| grep -v '(use "git checkout -- <file>..." to discard changes in working directory)' \
+| grep -v '(use "git add <file>..." to include in what will be committed)' \
+| grep -v 'nothing added to commit but untracked files present (use "git add" to track)'
 ;;
 
 stage)
@@ -32,6 +41,48 @@ if [ -z "$2" ]; then
 else
     git reset HEAD "${@:2}"
 fi
+;;
+
+tag)
+echo Tagging
+git tag "$2"
+;;
+
+untag)
+# Delete tag (if tag exists)
+if git rev-parse "$2" >/dev/null 2>&1
+then
+  echo Deleting tag "$2"
+  git tag -d "$2"
+fi
+# Get local branch name
+local_branch=$(git rev-parse --abbrev-ref HEAD)
+# Get associated remote
+remote=$(git config --get branch.$local_branch.remote)
+# If tag is not present on remote, stop here.
+exist=$(git ls-remote --tags "$remote" "$2")
+if [ "$exist" != '' ]
+then
+  # Prompt user to delete on upstream.
+  read -e -p "Would you like to delete the tag on remote '${remote}'? [Y/n]: " deltag
+  deltag=${deltag:-Y}
+  case "$deltag" in
+  [Yy] | [Yy][Ee][Ss] )
+    git push --delete "$remote" "$2"
+  ;;
+  [Nn] | [Nn][Oo] )
+  ;;
+  esac
+fi
+;;
+
+add)
+# TODO: make add only add untracked files (useful when auto-completing)
+;;
+
+rm)
+echo Removing
+git rm "$2"
 ;;
 
 reset)
@@ -68,13 +119,13 @@ echo 'Switching to branch'
 if [ -z "$2" ]; then
     echo '! Specify branch name'
 else
-    git stash # Save branch index state
+    git stash save --include-untracked --quiet 'get-branch autostash' # Save branch index state
     if git rev-parse --verify --quiet "$2" > /dev/null; then
         git checkout "$2"
     else
         git checkout -b "$2"
     fi
-    git stash pop # Restore branch index state
+    git stash pop --quiet # Restore branch index state
 fi
 ;;
 
@@ -112,18 +163,6 @@ done
 
 ignore)
 
-;;
-
-status)
-# TODO: figure out how to git config --global color.status always automatically.
-git status \
-| grep -v 'On branch' \
-| grep -v '(use "git push" to publish your local commits)' \
-| grep -v '(use "git reset HEAD <file>..." to unstage)' \
-| grep -v '(use "git add <file>..." to update what will be committed)' \
-| grep -v '(use "git checkout -- <file>..." to discard changes in working directory)' \
-| grep -v '(use "git add <file>..." to include in what will be committed)' \
-| grep -v 'nothing added to commit but untracked files present (use "git add" to track)'
 ;;
 
 diff)
@@ -202,6 +241,37 @@ else
 fi
 echo Cloning $url
 git clone "$url"
+;;
+
+squash)
+# I implement squash a little differently than most.
+# 1) Rebase squashing aggregates commit messages, which is usually
+#   counter to the purpose of squashing, which is to hide the fact
+#   that a change took several real commits.
+# 2) Rebasing also deletes commits by default, which is problematic
+#   if you have pushed those commits to the server already.
+# This solution is more gentle in that it creates a new commit with
+# a new commit message containing the same changes as the old
+# series of commits, but doesn't delete the old commits, leaving them
+# as a branch.
+# TODO: check argument is numeric
+if [[ "$2" =~ ^[0-9]+$ ]]
+then
+    echo "Squash the following commits together:"
+    git log --abbrev-commit \
+            --color \
+            --graph \
+            --ancestry-path \
+            --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' \
+            HEAD...HEAD~$2
+    read -p 'Message: ' msg
+    git stash save --include-untracked --quiet 'get-squash autostash'
+    git reset --soft HEAD~$(($2+1))
+    git commit -m "$msg"
+    git stash pop --quiet
+else
+    echo "The second argument is expected to be an integer."
+fi
 ;;
 
 esac
