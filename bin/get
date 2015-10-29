@@ -281,4 +281,9 @@ git log --color \
         --abbrev-commit -10 "${@:2}"
 ;;
 
+*)
+echo "Passing args straight to git..."
+git $@
+;;
+
 esac
