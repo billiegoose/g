@@ -98,7 +98,7 @@ fi
 commit)
 echo "Parent commit: $(git log --abbrev-commit -1 --pretty=format:'%C(bold blue)%s%Creset %Cgreen(%cr)%Creset')"
 if [ -z "$2" ]; then
-    read -p 'Message: ' msg
+    read -ep 'Message: ' msg
     git commit -m "$msg"
 else
     git commit -m "$2"
@@ -119,13 +119,13 @@ echo 'Switching to branch'
 if [ -z "$2" ]; then
     echo '! Specify branch name'
 else
-    git stash save --include-untracked --quiet 'get-branch autostash' # Save branch index state
+    #git stash save --include-untracked --quiet 'get-branch autostash' # Save branch index state
     if git rev-parse --verify --quiet "$2" > /dev/null; then
         git checkout "$2"
     else
         git checkout -b "$2"
     fi
-    git stash pop --quiet # Restore branch index state
+    #git stash pop --quiet # Restore branch index state
 fi
 ;;
 
@@ -272,6 +272,13 @@ then
 else
     echo "The second argument is expected to be an integer."
 fi
+;;
+
+lg)
+git log --color \
+        --graph \
+        --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' \
+        --abbrev-commit -10 "${@:2}"
 ;;
 
 esac
