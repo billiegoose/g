@@ -171,7 +171,7 @@ diff)
 # is common in Python and CoffeeScript.
 if [ -z "$2" ]; then
     echo 'Compare working tree with HEAD'
-    git diff HEAD --ignore-space-change
+    git diff --ignore-space-change HEAD
 else
     if [ -z "$3" ]; then
         if [ "$2" = 'STAGE' ]; then
@@ -179,15 +179,15 @@ else
             git diff --ignore-space-change
         else
             echo "Compare working tree with $2"
-            git diff "$2" --ignore-space-change
+            git diff --ignore-space-change "$2"
         fi
     else
         if [ "$2" = 'STAGE' ]; then
             echo "Compare stage with $3"
-            git diff --cached "$3" --ignore-space-change
+            git diff --cached --ignore-space-change "$3"
         else
             echo "Compare $2 with $3"
-            git diff "$2" "$3" --ignore-space-change
+            git diff --ignore-space-change "$2" "$3"
         fi
     fi
 fi
@@ -195,7 +195,7 @@ fi
 
 review)
 echo 'Compare stage with HEAD'
-git diff --cached HEAD --ignore-space-change
+git diff --cached --ignore-space-change HEAD
 ;;
 
 push)
