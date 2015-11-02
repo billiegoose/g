@@ -81,8 +81,23 @@ add)
 ;;
 
 rm)
-echo Removing
-git rm "$2"
+echo Removing tracked files
+git rm -r "$2"
+# Check to see if there are still remaining files
+if [ -d "$2" ]
+then
+  # Prompt user to delete untracked files
+  read -n 1 -p "Would you like to delete the untracked files as well? [Y/n]: " answer
+  echo -e '\n'
+  answer=${answer:-Y}
+  case "$answer" in
+  [Yy] )
+    rm -Rf "$2"
+  ;;
+  [Nn] )
+  ;;
+  esac
+fi
 ;;
 
 reset)
