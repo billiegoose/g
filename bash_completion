@@ -21,12 +21,15 @@ case ${COMP_CWORD} in
             commands=$(list_branches)
             COMPREPLY=( $(compgen -W "${commands}" "$2") )
         ;;
-        stage | unstage | ignore)
-            COMPREPLY=( $(compgen -A file -X .git "$2") )
-        ;;
+        stage | unstage | ignore | rm)
+            compopt -o nospace
+            COMPREPLY=( $(compgen -o default -S "/" -d -X .git "$2") )
+         ;;
         diff)
+            compopt -o nospace
             commands="STAGE"
-            COMPREPLY=( $(compgen -A file -X .git -W "${commands}" "$2") )
+            COMPREPLY=( $(compgen -W "${commands}" "$2") )
+            COMPREPLY+=( $(compgen -o default -S "/" -d -X .git "$2") )
         ;;
     esac
 ;;
