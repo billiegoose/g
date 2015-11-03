@@ -39,17 +39,21 @@ case ${COMP_CWORD} in
         '=' | stage | reset)
             COMPREPLY=( $(compgen -W "$(list_modified)" "$2") )
         ;;
-        # <tracked path>
+        # <staged path>
         unstage)
             COMPREPLY=( $(compgen -W "$(list_staged)" "$2") )
         ;;
-        '-' | rm | diff)
+        # <tracked path>
+        '-' | rm)
             COMPREPLY=( $(compgen -W "$(list_tracked)" "$2") )
+        ;;
+        diff)
+            COMPREPLY=( $(compgen -W "$(list_tracked)" -W "STAGE" -W "HEAD" "$2") )
         ;;
         # <untracked path>
         '+' | add)
             compopt -o nospace
-            COMPREPLY=( $(compgen -W "$(list_untracked)" -W "STAGE" -W "HEAD" "$2") )
+            COMPREPLY=( $(compgen -W "$(list_untracked)" "$2") )
         ;;
     esac
 ;;

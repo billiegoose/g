@@ -28,10 +28,11 @@ EDIT: Even better example of inanity of git CLI: To get the SHA reference of HEA
 
 get | git
 ------------- | -------------
+get add <untracked file> | git add <file>
 get stage | git add -u :/
-get stage %FILES% | git add %FILES%
+get stage <tracked file> | git add <file>
 get unstage | git reset HEAD
-get unstage %FILES% | git reset HEAD %FILES%
+get unstage <staged file> | git reset HEAD <file>
 get reset | git checkout -f HEAD
 get reset %FILES% | git checkout %FILES%
 get commit %MESSAGE% | git commit -m %MESSAGE%
@@ -53,9 +54,26 @@ get tag %TAG% | git tag %TAG%
 get untag %TAG% | Deletes local tag. Y/N prompt to delete remote tag.
 get lg | git log --graph --pretty=format:'%h - %d %s (%cr) <%an>' --abbrev-commit -10
 
+Short Aliases | Full
+--------------|-----
+get ? | get status
+get + | get add
+get - | get rm
+get = | get stage
+get ! | get commit
+get @ | get branch
+get # | get tag
+get ^ | get push
+
+
 ### TODO
-Now that I've added tab completion, I think "stage" and "status" are too similar.
-Also, I have three commands that start with "r" which is a problem.
+* ~~Now that I've added tab completion, I think "stage" and "status" are too similar.~~
+  I've solved that for now by adding short aliases 'get =' and 'get ?'. Not intuitive,
+  but I didn't want to rename status or stage. (Remember, I'm
+  trying to keep as much lingo unchanged.) It's the same number of keystrokes as if using
+  tab completion and one letter. I know, I know, still feels inconvenient somehow.
+* Also, I have ~~three~~ four commands that start with "r" which is a problem for tab completion.
+  Seriously considering renaming 'rmbranch' to 'unbranch' to match 'untag' and 'unstage'.
 
 ### Changelog
 - I renamed "update" to "fetch" to avoid completion conflicts with "unstage".
