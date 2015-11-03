@@ -29,7 +29,7 @@ if [ -z "$2" ]; then
     git add -u :/
 else
     echo Staging "${@:2}"
-    git add "${@:2}"
+    git add --all "${@:2}"
 fi
 ;;
 

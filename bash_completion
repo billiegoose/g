@@ -2,7 +2,19 @@
 list_branches() {
     git for-each-ref refs/heads --format="%(refname:short)"
 }
-
+list_tracked() {
+    git ls-tree HEAD | grep blob | awk '{print $4}';
+    git ls-tree HEAD | grep tree | awk '{print $4"/"}';
+}
+list_untracked() {
+    git ls-files --exclude-standard --other --directory --no-empty-directory
+}
+list_modified() {
+    git ls-files --modified
+}
+list_staged() {
+    git diff --name-only --relative --cached
+}
 _get_complete()
 {
 # Available variables:
@@ -16,20 +28,35 @@ case ${COMP_CWORD} in
     COMPREPLY=( $(compgen -W "${commands}" "$2") )
 ;;
 2)
+    compopt -o nospace
     case "$3" in
+        # <branch>
         branch | rmbranch | fetch)
-            commands=$(list_branches)
-            COMPREPLY=( $(compgen -W "${commands}" "$2") )
+            COMPREPLY=( $(compgen -W "$(list_branches)" "$2") )
         ;;
-        stage | unstage | ignore | rm)
+        # <modified path>
+        stage)
+            COMPREPLY=( $(compgen -W "$(list_modified)" "$2") )
+        ;;
+        # <tracked path>
+        unstage)
+            COMPREPLY=( $(compgen -W "$(list_staged)" "$2") )
+        ;;
+        rm | diff)
+            COMPREPLY=( $(compgen -W "$(list_tracked)" "$2") )
+        ;;
+        # <untracked path>
+        add)
             compopt -o nospace
-            COMPREPLY=( $(compgen -o default -S "/" -d -X .git "$2") )
-         ;;
+            COMPREPLY=( $(compgen -W "$(list_untracked)" -W "STAGE" -W "HEAD" "$2") )
+        ;;
+    esac
+;;
+3)
+    case "${COMP_WORDS[COMP_CWORD-2]}" in
         diff)
             compopt -o nospace
-            commands="STAGE"
-            COMPREPLY=( $(compgen -W "${commands}" "$2") )
-            COMPREPLY+=( $(compgen -o default -S "/" -d -X .git "$2") )
+            COMPREPLY=( $(compgen -W "$(list_tracked)" "$2") )
         ;;
     esac
 ;;
