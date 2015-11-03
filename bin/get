@@ -10,7 +10,7 @@ list_remote_branches() {
 }
 
 case "$1" in
-"" | status)
+'?' | status)
 # TODO: Display help if not inside a repo
 # TODO: figure out how to git config --global color.status always automatically.
 git status \
@@ -23,7 +23,7 @@ git status \
 | grep -v 'nothing added to commit but untracked files present (use "git add" to track)'
 ;;
 
-stage)
+= | stage)
 if [ -z "$2" ]; then
     echo Staging all modified files
     git add -u :/
@@ -43,7 +43,7 @@ else
 fi
 ;;
 
-tag)
+'#' | tag)
 echo Tagging
 git tag "$2"
 ;;
@@ -76,11 +76,15 @@ then
 fi
 ;;
 
-add)
-# TODO: make add only add untracked files (useful when auto-completing)
+'+' | add)
+# The only real difference between add and stage is
+# add will tab-complete with untracked files, while
+# stage tab-completes with tracked files
+echo Staging "${@:2}"
+git add --all "${@:2}"
 ;;
 
-rm)
+'-' | rm)
 echo Removing tracked files
 git rm -r "$2"
 # Check to see if there are still remaining files
@@ -110,7 +114,7 @@ else
 fi
 ;;
 
-commit)
+'!' | commit)
 echo "Parent commit: $(git log --abbrev-commit -1 --pretty=format:'%C(bold blue)%s%Creset %Cgreen(%cr)%Creset')"
 if [ -z "$2" ]; then
     read -ep 'Message: ' msg
@@ -129,7 +133,7 @@ undo)
     esac
 ;;
 
-branch)
+'@' | branch)
 echo 'Switching to branch'
 if [ -z "$2" ]; then
     echo '! Specify branch name'
@@ -213,7 +217,7 @@ echo 'Compare stage with HEAD'
 git diff --cached --ignore-space-change HEAD
 ;;
 
-push)
+^ | push)
 echo 'Pushing'
 # Check to see if upstream is set.
 if git rev-parse --abbrev-ref @{upstream} >/dev/null ; then
@@ -289,7 +293,7 @@ else
 fi
 ;;
 
-lg)
+log)
 git log --color \
         --graph \
         --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' \

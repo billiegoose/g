@@ -24,29 +24,30 @@ _get_complete()
 # $3 : the word preceding the word being completed
 case ${COMP_CWORD} in
 1)
-    commands="branch commit diff fetch ignore reset rmbranch review stage status unstage"
+    commands="branch commit diff fetch ignore reset rm rmbranch review stage unstage"
     COMPREPLY=( $(compgen -W "${commands}" "$2") )
 ;;
 2)
     compopt -o nospace
-    case "$3" in
+    #case "$3" in
+    case "${COMP_WORDS[1]}" in
         # <branch>
-        branch | rmbranch | fetch)
+        '@' | branch | rmbranch | fetch)
             COMPREPLY=( $(compgen -W "$(list_branches)" "$2") )
         ;;
         # <modified path>
-        stage)
+        '=' | stage | reset)
             COMPREPLY=( $(compgen -W "$(list_modified)" "$2") )
         ;;
         # <tracked path>
         unstage)
             COMPREPLY=( $(compgen -W "$(list_staged)" "$2") )
         ;;
-        rm | diff)
+        '-' | rm | diff)
             COMPREPLY=( $(compgen -W "$(list_tracked)" "$2") )
         ;;
         # <untracked path>
-        add)
+        '+' | add)
             compopt -o nospace
             COMPREPLY=( $(compgen -W "$(list_untracked)" -W "STAGE" -W "HEAD" "$2") )
         ;;
