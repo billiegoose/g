@@ -115,7 +115,7 @@ fi
 ;;
 
 '!' | commit)
-echo "Parent commit: $(git log --abbrev-commit -1 --pretty=format:'%C(bold blue)%s%Creset %Cgreen(%cr)%Creset')"
+parent_commit="$(git log --abbrev-commit -1 --pretty=format:'%C(bold blue)%s%Creset %Cgreen(%cr)%Creset' 2>/dev/null)" && echo "Parent commit: $parent_commit"
 if [ -z "$2" ]; then
     read -ep 'Message: ' msg
     git commit -m "$msg"
