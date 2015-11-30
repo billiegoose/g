@@ -49,10 +49,12 @@ get diff STAGE %REF% | compare stage with %REF% (git diff --cached %REF%)
 get diff %REFA% %REFB% | compare %REFA% with %REFB% (git diff %REFA% %REFB%)
 get undo commit | git reset --soft HEAD~1
 get push | pushes to upstream. If upstream not set, prompt user to name a remote branch. (If multiple remotes exist, prompt for which remote to use.)
-get clone %PATH% | %PATH% can be a normal url. Paths like "username/repo" will be expanded assuming a Github. Paths with just "repo" will expand to a Github url, if your Github username is stored in git config.
+get clone %PATH% | git clone --recurse-submodules %PATH%. Paths like "username/repo" will be expanded assuming a Github. Paths with just "repo" will expand to a Github url, if your Github username is stored in git config.
 get tag %TAG% | git tag %TAG%
 get untag %TAG% | Deletes local tag. Y/N prompt to delete remote tag.
-get lg | git log --graph --pretty=format:'%h - %d %s (%cr) <%an>' --abbrev-commit -10
+get log | git log --graph --pretty=format:'%h - %d %s (%cr) <%an>' --abbrev-commit -10
+get submodule | Finds all git repos underneath the main repo and makes them submodules
+get ignore %FILE% | Adds %FILE% to the current .gitignore file
 
 Short Aliases | Full
 --------------|-----
