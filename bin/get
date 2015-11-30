@@ -9,6 +9,10 @@ list_remote_branches() {
     git for-each-ref refs/heads --format="%(refname:short)"
 }
 
+git_root() {
+    git rev-parse --show-toplevel
+}
+
 case "$1" in
 '?' | status)
 # TODO: Display help if not inside a repo
@@ -298,6 +302,34 @@ git log --color \
         --graph \
         --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' \
         --abbrev-commit -10 "${@:2}"
+;;
+
+submodule)
+CWD=$(pwd)
+gitroot=$(git_root)
+shopt -s globstar
+# For every git repository found within...
+for dir in $gitroot/*/**/.git
+do
+    cd "$dir"
+    # Get relative directory name
+    reldir=${dir#$gitroot/}
+    reldir=${reldir%/.git}
+    echo "[submodule \"$reldir\"]"
+    # Get local branch name
+    local_branch=$(git rev-parse --abbrev-ref HEAD)
+    # Get associated remote
+    remote=$(git config --get branch.$local_branch.remote)
+    # Get url of remote
+    url=$(git config --get remote.$remote.url)
+    echo "url = $url"
+    cd "$gitroot"
+    git submodule add "$url" "$reldir"
+    echo ''
+done
+cd "$gitroot"
+git submodule init
+cd "$CWD"
 ;;
 
 *)
