@@ -273,7 +273,7 @@ else
     url="$2"
 fi
 echo Cloning $url
-git clone "$url"
+git clone --recurse-submodules "$url"
 ;;
 
 squash)
