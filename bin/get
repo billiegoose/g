@@ -185,7 +185,17 @@ done
 ;;
 
 ignore)
-
+GIT_ROOT=$(git_root)
+CWD=$(pwd)
+cd "$GIT_ROOT"
+if [[ -e ".gitignore" ]] && grep "$2" ".gitignore" >/dev/null
+then
+    echo "$2 already in .gitignore"
+else
+    echo "Adding $2 to .gitignore"
+    echo "$2" >> ".gitignore"
+fi
+cd "$CWD"
 ;;
 
 diff)
