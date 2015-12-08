@@ -1,60 +1,80 @@
-# gitredux
-###This project is nascent and in a state of flux!
+# gitredux - "Let's remake the git CLI"
 
 This project takes inspiration from [gitless](http://gitless.com/) and [legit](https://github.com/kennethreitz/legit), and is
 influenced by this [blog post](http://www.saintsjd.com/2012/01/a-better-ui-for-git/) and this [fantastic diatribe](http://stevebennett.me/2012/02/24/10-things-i-hate-about-git).
-However, I feel all of these tools are either underdeveloped or too opinionated. I want a tool that gives me all the
+However, I feel all of these tools are either *underdeveloped* or *too opinionated*. I want a tool that gives me all the
 same control as git but without the headache of its impossible to remember commands.
 
-### Goals
-* CONSISTANCY
-* Fewer, more orthogonal commands
-* More useful (and non-destructive) default behaviors
+### Project Goals
+1. Stay as close to the original jargon of git as possible, rather than create a dialect or "new" abstractions.
+  - Some exceptions must be made for the horribly confusing unintuitive names.
+* Have a consistant, predictable command names
+* Have more useful and predictable default behaviors
+* Make recovering from mistakes easier
 
-### Why?
-I started this project because `git log --no-pager` gives an error. Apparently I wanted `git --no-pager log`. This was the last straw.
-*So I decided to "fix" the git CLI.*
+### Equivalent Command List
 
-EDIT: Even better example of inanity of git CLI: To get the SHA reference of HEAD, do you use `git show-ref HEAD --abbrev --hash` or `git rev-parse --short HEAD`?
+#### Stage operations 
+There are a lot of really terribly named commands here: add, reset, checkout. (checkout? What is this, SVN?) They are probably named so because they are seen from the point-of-view of the stage, rather than the working directory. But since the stage is a new concept to beginners, thinking from the working directory point-of-view is how most new users (or even most normal developers) think.
 
- * Why are they different results?
- * Why does `show-ref` use `--abbrev` but `rev-parse` use `--short`?
- * Why are the options _after_ `HEAD` in `show-ref` but _before_ `HEAD` in `rev-parse`?
- * I leave answering these questions as an exercise to the reader.
+So here is where I make perhaps the biggest naming changes. Updating the stage copy of a file is now `stage` as a verb. Reseting the stage copy is now called `unstage`. `get reset` now resets the file in the working directory, rather than the file in the stage.
 
-
-### Commands
-(bound to get out of date quickly)
-
-get | git
-------------- | -------------
-get add <untracked file> | git add <file>
+get | git equivalent
+--- | --------------
+get add *untracked_file* | git add *untracked_file*
 get stage | git add -u :/
-get stage <tracked file> | git add <file>
+get stage *tracked_file* | git add *tracked_file*
 get unstage | git reset HEAD
-get unstage <staged file> | git reset HEAD <file>
+get unstage *staged_file* | git reset HEAD *staged_file*
 get reset | git checkout -f HEAD
-get reset %FILES% | git checkout %FILES%
-get commit %MESSAGE% | git commit -m %MESSAGE%
-get branch %BRANCH% | stashes working tree, creates or switches branch, and checks out branch
-get rmbranch %BRANCH% | git branch -d %BRANCH% *TODO: rename?*
-get fetch | Fetches all remotes and fast-forwards local branches when possible
-get fetch %BRANCHES% | Fetches and fast-forwards the specified branches
+get reset *file* | git checkout *file*
+
+#### Making commits/branches/tags
+Here I mostly just enhanced the porcelain commands. At some point, I would like to consolidate the syntax for creating and deleting things, where things can be branches, tags, remotes, etc.
+
+get | git equivalent
+--- | --------------
+get commit | Prompts for commit message inline, rather than opening a text editor
+get commit *message* | git commit -m *message*
+get undo commit | git reset --soft HEAD~1
+get branch *branch* | stashes working tree, creates or switches branch, and checks out branch
+get rmbranch *branch* | git branch -d *branch* *TODO: rename?*
+get tag *tag* | git tag *tag*
+get untag *tag* | Deletes local tag and shows Y/N prompt to delete remote tag.
+
+#### Viewing changes
+By default, all diff commands compare the working directory to something else. By default, that something else is HEAD, not the stage as it is in git, because I think the most common query is "what have I changed since my last commit?" not "what is different between the stage and my working directory?". STAGE refers to the git staging area. I choose to always use the keyword *stage* rather than *index*, because they're the same thing and having two names for the same thing is unnecessarily confusing. And calling it the *cache* in the --cached option just makes it even worse. I avoid the stage/index/cached confusion by choosing to give it a name (STAGE) and treating it like a special reference akin to HEAD.
+
+get | git equivalent
+--- | --------------
 get status | git status
 get review | git diff --cached
 get diff | compare working tree with HEAD (git diff HEAD)
 get diff STAGE | compare working tree with stage (git diff)
-get diff %REF% | compare working tree with %REF% (git diff %REF%)
-get diff STAGE %REF% | compare stage with %REF% (git diff --cached %REF%)
-get diff %REFA% %REFB% | compare %REFA% with %REFB% (git diff %REFA% %REFB%)
-get undo commit | git reset --soft HEAD~1
+get diff *ref* | compare working tree with *ref* (git diff *ref*)
+get diff STAGE *ref* | compare stage with *ref* (git diff --cached *ref*)
+get diff *refA* *refB* | compare *refA* with *refB* (git diff *refA* *refB*)
+
+#### Working with remotes
+Here, I want practicality and "it just works (TM)". The clone command installs submodules by default. I am (slowly) adding support for popular hosting services. Right now its just Github but I will probably add Bitbucket.
+
+The biggest grievance when working with remotes is the "git pull" command. Which as anyone will tell you, just does "git fetch" followed by "git merge". But merging can be downright dangerous, especially if you have unsaved changed, leading to unsuccessful "git pull" attempts. I am going to avoid "pull" altogether, but to speed things up, my "fetch" operation goes ahead and fast-forwards branches.
+
+get | git equivalent
+--- | --------------
+get clone *PATH* | git clone --recurse-submodules *PATH*. Paths like "username/repo" will be expanded assuming a Github. Paths with just "repo" will expand to a Github url, if your Github username is stored in git config.
+get fetch | Fetches all remotes and fast-forwards local branches when possible
+get fetch *branches* | Fetches and fast-forwards the specified branches
 get push | pushes to upstream. If upstream not set, prompt user to name a remote branch. (If multiple remotes exist, prompt for which remote to use.)
-get clone %PATH% | git clone --recurse-submodules %PATH%. Paths like "username/repo" will be expanded assuming a Github. Paths with just "repo" will expand to a Github url, if your Github username is stored in git config.
-get tag %TAG% | git tag %TAG%
-get untag %TAG% | Deletes local tag. Y/N prompt to delete remote tag.
+
+#### Miscellaneous
+
 get log | git log --graph --pretty=format:'%h - %d %s (%cr) <%an>' --abbrev-commit -10
+get ignore *file* | Adds *file* to the current .gitignore file
 get submodule | Finds all git repos underneath the main repo and makes them submodules
-get ignore %FILE% | Adds %FILE% to the current .gitignore file
+
+#### Shortcuts
+Because sometimes you just want to type one letter. :)
 
 Short Aliases | Full
 --------------|-----
@@ -67,6 +87,17 @@ get @ | get branch
 get # | get tag
 get ^ | get push
 
+
+### Why?
+I started this project because `git log --no-pager` gives an error. Apparently I wanted `git --no-pager log`. This was the last straw.
+*So I decided to "fix" the git CLI.*
+
+EDIT: Even better example of inanity of git CLI: To get the SHA reference of HEAD, do you use `git show-ref HEAD --abbrev --hash` or `git rev-parse --short HEAD`?
+
+ * Why are they different results?
+ * Why does `show-ref` use `--abbrev` but `rev-parse` use `--short`?
+ * Why are the options _after_ `HEAD` in `show-ref` but _before_ `HEAD` in `rev-parse`?
+ * I leave answering these questions as an exercise to the reader.
 
 ### TODO
 * ~~Now that I've added tab completion, I think "stage" and "status" are too similar.~~
