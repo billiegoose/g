@@ -22,6 +22,7 @@ So here is where I make perhaps the biggest naming changes. Updating the stage c
 get | git equivalent
 --- | --------------
 get add *untracked_file* | git add *untracked_file*
+get rm *tracked_file* | git rm -r *tracked_file* Then prompt y/n to delete untracked files in deleted directories.
 get stage | git add -u :/
 get stage *tracked_file* | git add *tracked_file*
 get unstage | git reset HEAD
@@ -62,16 +63,25 @@ The biggest grievance when working with remotes is the "git pull" command. Which
 
 get | git equivalent
 --- | --------------
-get clone *PATH* | git clone --recurse-submodules *PATH*. Paths like "username/repo" will be expanded assuming a Github. Paths with just "repo" will expand to a Github url, if your Github username is stored in git config.
+get clone *PATH* | git clone --recurse-submodules *PATH*
+                 | - Paths like "username/repo" will be expanded to a Github URL.
+                 | - Paths like "repo" will be expanded to a Github url if your username is stored in git config.
 get fetch | Fetches all remotes and fast-forwards local branches when possible
 get fetch *branches* | Fetches and fast-forwards the specified branches
-get push | pushes to upstream. If upstream not set, prompt user to name a remote branch. (If multiple remotes exist, prompt for which remote to use.)
+get push | pushes to upstream.
+         | - If upstream not set, prompt user to name a remote branch.
+         | - If multiple remotes exist, prompt for which remote to use.
 
 #### Miscellaneous
 
+get | git equivalent
+--- | --------------
 get log | git log --graph --pretty=format:'%h - %d %s (%cr) <%an>' --abbrev-commit -10
 get ignore *file* | Adds *file* to the current .gitignore file
 get submodule | Finds all git repos underneath the main repo and makes them submodules
+get squash *n* | Squash the last *n* commits into one commit.
+               | - Prompts for a new commit message.
+               | - Moves HEAD without actually deleting the old commits.
 
 #### Shortcuts
 Because sometimes you just want to type one letter. :)
