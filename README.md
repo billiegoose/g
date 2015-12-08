@@ -1,4 +1,4 @@
-# gitredux - "Let's remake the git CLI"
+# gitredux - Let's remake the git CLI
 
 This project takes inspiration from [gitless](http://gitless.com/) and [legit](https://github.com/kennethreitz/legit), and is
 influenced by this [blog post](http://www.saintsjd.com/2012/01/a-better-ui-for-git/) and this [fantastic diatribe](http://stevebennett.me/2012/02/24/10-things-i-hate-about-git).
@@ -78,7 +78,7 @@ get submodule | Finds all git repos underneath the main repo and makes them subm
 get squash *n* | Squash the last *n* commits into one commit. <ul><li> Prompts for a new commit message. </li><li> Moves HEAD without actually deleting the old commits. </li></ul>
 
 #### Shortcuts
-Because sometimes you just want to type one letter. :)
+Because sometimes you just want to type one letter.
 
 Short Aliases | Full
 --------------|-----
