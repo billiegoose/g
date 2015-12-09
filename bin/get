@@ -272,8 +272,19 @@ then
 else
     url="$2"
 fi
-echo Cloning $url
-git clone --recurse-submodules "$url"
+
+# Extract branch from URL
+if [[ "$url" == *"#"* ]]
+then
+    clone_branch=${url##*#}
+    url=${url%#*}
+fi
+
+# Default to master branch if no branch in URL
+clone_branch=${clone_branch:-master}
+
+echo "Cloning $clone_branch branch of $url"
+git clone --recurse-submodules -b $clone_branch "$url"
 ;;
 
 squash)
