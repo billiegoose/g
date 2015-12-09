@@ -63,7 +63,7 @@ The biggest grievance when working with remotes is the "git pull" command. Which
 
 get | git equivalent
 --- | --------------
-get clone *PATH* | git clone --recurse-submodules *PATH* <ul><li> Paths like "username/repo" will be expanded to a Github URL. </li> <li> Paths like "repo" will be expanded to a Github url if your username is stored in git config. </li></ul>
+get clone *PATH* | git clone --recurse-submodules [-b *branch*] *PATH* <ul><li> Paths like "username/repo" will be expanded to a Github URL. </li> <li> Paths like "repo" will be expanded to a Github url if your username is stored in git config. </li> <li> Paths ending with #*branch* (the URL style used by NPM and Bower) will clone that branch.  </ul>
 get fetch | Fetches all remotes and fast-forwards local branches when possible
 get fetch *branches* | Fetches and fast-forwards the specified branches
 get push | pushes to upstream. <ul><li> If upstream not set, prompt user to name a remote branch. </li> <li> If multiple remotes exist, prompt for which remote to use. </li></ul>
