@@ -13,6 +13,14 @@ git_root() {
     git rev-parse --show-toplevel
 }
 
+confirm () {
+    read -r -n 1 -p "${1:-Are you sure? [y/N]} " response
+    case $response in
+        [yY]) true ;;
+        *) false ;;
+    esac
+}
+
 case "$1" in
 '?' | status)
 # TODO: Display help if not inside a repo
@@ -156,19 +164,53 @@ rmbranch)
 echo 'Delete branch'
 if [ -z "$2" ]; then
     echo '! Specify branch name'
-else
-    git branch -d "$2"
+    exit;
 fi
+if ! git rev-parse --quiet --verify "$2" >/dev/null
+then
+    echo "Branch not found: '$2'"
+    exit;
+fi
+# else
+git branch -d "$2"
+if [[ "$?" -ne 0 ]]; then
+    if confirm 'Are sure you want to delete this branch?'; then
+        echo ''
+        git branch -D "$2"
+    else
+        echo ''
+    fi
+fi
+;;
+
+branches)
+# Make a temporary directory
+TEMP=$(mktemp -d)
+trap "rm -rf $TEMP" EXIT
+# List all merged branches to >merged.branches
+git branch --merged | sed 's/^..//' > "$TEMP/merged.branches"
+# Pretty-print local branches
+git for-each-ref --sort=-committerdate refs/heads \
+--format='%(HEAD) %(color:green)%(committerdate:relative)%(color:reset)|%(color:red)%(objectname:short)%(color:reset)|%(color:yellow)%(refname:short)%(color:reset) -> %(upstream:short)' > "$TEMP/local.branches"
+sed -i 's/ -> $/ -> \?/g' "$TEMP/local.branches"
+while read -r branch; do
+    sed -i "s~${branch}\b.*~\0|(merged)~" "$TEMP/local.branches"
+done < "$TEMP/merged.branches"
+# Pretty-print remote branches
+git for-each-ref --sort=-committerdate refs/remotes \
+--format='%(HEAD) %(color:green)%(committerdate:relative)%(color:reset)|%(color:red)%(objectname:short)%(color:reset)|%(color:blue)%(refname:short)%(color:reset)' > "$TEMP/remote.branches"
+# Print them in columns
+cat "$TEMP/local.branches" "$TEMP/remote.branches" | column -ts'|'
 ;;
 
 fetch)
 echo Updating
 if [ -z "$2" ]; then
-    git fetch --all
+    git fetch --all --prune
     branches="$(list_branches)"
 else
     branches = "${@:2}"
-    git fetch "$branches"
+    git fetch --prune "$branches"
 fi
 # Fast-forward local branches. I owe a lot to http://stackoverflow.com/a/24451300/2168416
 current_branch=$(git rev-parse --abbrev-ref HEAD)
@@ -284,8 +326,19 @@ then
 else
     url="$2"
 fi
-echo Cloning $url
-git clone --recurse-submodules "$url"
+
+# Extract branch from URL
+if [[ "$url" == *"#"* ]]
+then
+    clone_branch=${url##*#}
+    url=${url%#*}
+fi
+
+# Default to master branch if no branch in URL
+clone_branch=${clone_branch:-master}
+
+echo "Cloning $clone_branch branch of $url"
+git clone --recurse-submodules -b $clone_branch "$url"
 ;;
 
 squash)
