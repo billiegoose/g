@@ -242,7 +242,10 @@ else
     # Check for multiple remotes
     remote_count=$(git remote show | wc -l)
     remotes=$(git remote show | tr '\n' ' ' | sed 's/\s*$//g')
-    if [ "$remote_count" = "1" ]; then
+    if [ "$remote_count" = "0" ]; then
+        echo "No remotes configured yet"
+        exit
+    elif [ "$remote_count" = "1" ]; then
         # If only one remote
         remote="$remotes"
     else
@@ -255,6 +258,15 @@ else
     echo "I will run git push --set-upstream ${remote} ${remote_branch}"
     git push --set-upstream ${remote} ${remote_branch}
 fi
+;;
+
+remote)
+read -ep "What is the URL for this remote repo?: " remote_url
+read -ep "Choose an alias for this remote [origin]: " remote_alias
+if [ "$remote_alias" = "" ]; then
+    remote_alias="origin"
+fi
+git remote add "$remote_alias" "$remote_url"
 ;;
 
 clone)
