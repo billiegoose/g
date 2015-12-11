@@ -63,7 +63,7 @@ The biggest grievance when working with remotes is the "git pull" command. Which
 
 get | git equivalent
 --- | --------------
-get clone *PATH* | git clone --recurse-submodules *PATH* <ul><li> Paths like "username/repo" will be expanded to a Github URL. </li> <li> Paths like "repo" will be expanded to a Github url if your username is stored in git config. </li></ul>
+get clone *PATH* | git clone --recurse-submodules [-b *branch*] *PATH* <ul><li> Paths like "username/repo" will be expanded to a Github URL. </li> <li> Paths like "repo" will be expanded to a Github url if your username is stored in git config. </li> <li> Paths ending with #*branch* (the URL style used by NPM and Bower) will clone that branch.  </ul>
 get fetch | Fetches all remotes and fast-forwards local branches when possible
 get fetch *branches* | Fetches and fast-forwards the specified branches
 get push | pushes to upstream. <ul><li> If upstream not set, prompt user to name a remote branch. </li> <li> If multiple remotes exist, prompt for which remote to use. </li></ul>
@@ -96,12 +96,35 @@ get ^ | get push
 I started this project because `git log --no-pager` gives an error. Apparently I wanted `git --no-pager log`. This was the last straw.
 *So I decided to "fix" the git CLI.*
 
-EDIT: Even better example of inanity of git CLI: To get the SHA reference of HEAD, do you use `git show-ref HEAD --abbrev --hash` or `git rev-parse --short HEAD`?
-
+#### EDIT 1: 
+Here is an even better example of the inanity of git CLI. To get the SHA reference of HEAD, which of these would you use?
+```
+git show-ref HEAD --abbrev --hash
+```
+or 
+```
+git rev-parse --short HEAD
+```
+Questions:
  * Why are they different results?
  * Why does `show-ref` use `--abbrev` but `rev-parse` use `--short`?
  * Why are the options _after_ `HEAD` in `show-ref` but _before_ `HEAD` in `rev-parse`?
- * I leave answering these questions as an exercise to the reader.
+ 
+I leave answering these questions as an exercise to the reader.
+
+#### EDIT 2:
+Another example of git's terrible option parsing. This command lists all the local branches that have been merged:
+```
+$ git branch --list --merged
+* develop
+  feature/latest
+```
+So what do you think this command does?
+```
+$ git branch --merged --list 
+fatal: malformed object name --list
+```
+OH MY GOD COULD YOU BE ANY MORE FRAGILE GIT?
 
 ### TODO
 * ~~Now that I've added tab completion, I think "stage" and "status" are too similar.~~
