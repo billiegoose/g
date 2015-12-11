@@ -42,6 +42,21 @@ get branch *branch* | stashes working tree, creates or switches branch, and chec
 get rmbranch *branch* | git branch -d *branch* *TODO: rename?*
 get tag *tag* | git tag *tag*
 get untag *tag* | Deletes local tag and shows Y/N prompt to delete remote tag.
+get branches | Print all local and remote branches sorted by last commit date, and more.
+
+For `get branches` it's easiest just to show an example:
+```console
+user@host:~/project get branches
+  2 days ago    c1632be  master -> origin/master
+* 11 days ago   1e8eab0  develop -> origin/develop  (merged)
+  5 months ago  d58b929  feature/historical -> ?    (merged)
+  5 months ago  3b22622  save -> ?
+  2 days ago    c1632be  origin/HEAD
+  2 days ago    c1632be  origin/master
+  11 days ago   1e8eab0  origin/develop
+  11 days ago   1e8eab0  origin/will
+  4 weeks ago   f58098a  origin/paul
+```
 
 #### Viewing changes
 By default, all diff commands compare the working directory to something else. By default, that something else is HEAD, not the stage as it is in git, because I think the most common query is "what have I changed since my last commit?" not "what is different between the stage and my working directory?". STAGE refers to the git staging area. I choose to always use the keyword *stage* rather than *index*, because they're the same thing and having two names for the same thing is unnecessarily confusing. And calling it the *cache* in the --cached option just makes it even worse. I avoid the stage/index/cached confusion by choosing to give it a name (STAGE) and treating it like a special reference akin to HEAD.
@@ -67,6 +82,7 @@ get clone *PATH* | git clone --recurse-submodules [-b *branch*] *PATH* <ul><li> 
 get fetch | Fetches all remotes and fast-forwards local branches when possible
 get fetch *branches* | Fetches and fast-forwards the specified branches
 get push | pushes to upstream. <ul><li> If upstream not set, prompt user to name a remote branch. </li> <li> If multiple remotes exist, prompt for which remote to use. </li></ul>
+get remote | Interactive prompt to add a remote.
 
 #### Miscellaneous
 
