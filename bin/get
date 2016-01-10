@@ -407,6 +407,12 @@ git submodule init
 cd "$CWD"
 ;;
 
+fix)
+if [[ "$2" = "color" ]]; then
+    git config --global color.ui always
+fi
+;;
+
 *)
 echo "Passing args straight to git..."
 git $@
