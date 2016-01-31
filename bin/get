@@ -119,8 +119,13 @@ fi
 reset)
 echo Resetting
 if [ -z "$2" ]; then
+    # OK so I typed "reset" instead of "unstage" (because unstage == git reset --mixed)
+    # and lost 3 hours of work. So we're not using this command anymore.
+    #git checkout -f HEAD
+    # We can achieve the same effect of reseting the working directory using git stash,
+    # which has the benefit of being reversable.
+    git stash save
     echo The working directory has been reset.
-    git checkout -f HEAD
 else
     git checkout "${@:2}"
 fi
