@@ -141,13 +141,9 @@ else
 fi
 ;;
 
-undo)
-    case "$2" in
-        commit)
-            echo Undoing last commit
-            git reset --soft HEAD~1
-        ;;
-    esac
+uncommit)
+    echo Undoing last commit
+    git reset --soft HEAD~1
 ;;
 
 '@' | branch)
