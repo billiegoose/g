@@ -15,6 +15,12 @@ list_modified() {
 list_staged() {
     git diff --name-only --relative --cached
 }
+list_tags() {
+    git tag
+}
+list_remotes() {
+    git remote
+}
 _get_complete()
 {
 # Available variables:
@@ -24,7 +30,11 @@ _get_complete()
 # $3 : the word preceding the word being completed
 case ${COMP_CWORD} in
 1)
-    commands="branch commit diff fetch ignore reset rm rmbranch review stage unstage"
+    commands="+ - = ! @ # ? ^ \
+clone fetch push remote \
+add rm ignore stage unstage reset commit uncommit branch rmbranch tag untag \
+branches status diff log review \
+squash subrepo submodule"
     COMPREPLY=( $(compgen -W "${commands}" "$2") )
 ;;
 2)
@@ -47,11 +57,12 @@ case ${COMP_CWORD} in
         '-' | rm)
             COMPREPLY=( $(compgen -W "$(list_tracked)" "$2") )
         ;;
+        # <ref>
         diff)
             COMPREPLY=( $(compgen -W "$(list_tracked)" -W "STAGE" -W "HEAD" "$2") )
         ;;
         # <untracked path>
-        '+' | add)
+        '+' | add | ignore)
             compopt -o nospace
             COMPREPLY=( $(compgen -W "$(list_untracked)" "$2") )
         ;;
