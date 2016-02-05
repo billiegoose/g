@@ -37,7 +37,7 @@ get | git equivalent
 --- | --------------
 get commit | Prompts for commit message inline, rather than opening a text editor
 get commit *message* | git commit -m *message*
-get undo commit | git reset --soft HEAD~1
+get uncommit | git reset --soft HEAD~1
 get branch *branch* | stashes working tree, creates or switches branch, and checks out branch
 get rmbranch *branch* | git branch -d *branch* *TODO: rename?*
 get tag *tag* | git tag *tag*
