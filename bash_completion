@@ -81,4 +81,4 @@ squash subrepo submodule"
 ;;
 esac
 }
-complete -F _get_complete get
+complete -F _get_complete g
