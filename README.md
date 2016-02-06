@@ -20,7 +20,7 @@ There are a lot of really terribly named commands here: add, reset, checkout. (c
 So here is where I make perhaps the biggest naming changes. Updating the stage copy of a file is now `stage` as a verb. Reseting the stage copy is now called `unstage`. `g reset` now resets the file in the working directory, rather than the file in the stage.
 
 g | git equivalent
-- | --------------
+--- | --------------
 g add *untracked_file* | git add *untracked_file*
 g rm *tracked_file* | git rm -r *tracked_file* Then prompt y/n to delete untracked files in deleted directories.
 g stage | git add -u :/
@@ -34,7 +34,7 @@ g reset *file* | git checkout *file*
 Here I mostly just enhanced the porcelain commands. At some point, I would like to consolidate the syntax for creating and deleting things, where things can be branches, tags, remotes, etc.
 
 g | git equivalent
-- | --------------
+--- | --------------
 g commit | Prompts for commit message inline, rather than opening a text editor
 g commit *message* | git commit -m *message*
 g uncommit | git reset --soft HEAD~1
@@ -62,7 +62,7 @@ user@host:~/project g branches
 By default, all diff commands compare the working directory to something else. By default, that something else is HEAD, not the stage as it is in git, because I think the most common query is "what have I changed since my last commit?" not "what is different between the stage and my working directory?". STAGE refers to the git staging area. I choose to always use the keyword *stage* rather than *index*, because they're the same thing and having two names for the same thing is unnecessarily confusing. And calling it the *cache* in the --cached option just makes it even worse. I avoid the stage/index/cached confusion by choosing to give it a name (STAGE) and treating it like a special reference akin to HEAD.
 
 g | git equivalent
-- | --------------
+--- | --------------
 g status | git status
 g review | git diff --cached
 g diff | compare working tree with HEAD (git diff HEAD)
@@ -77,7 +77,7 @@ Here, I want practicality and "it just works (TM)". The clone command installs s
 The biggest grievance when working with remotes is the "git pull" command. Which as anyone will tell you, just does "git fetch" followed by "git merge". But merging can be downright dangerous, especially if you have unsaved changed, leading to unsuccessful "git pull" attempts. I am going to avoid "pull" altogether, but to speed things up, my "fetch" operation goes ahead and fast-forwards branches.
 
 g | git equivalent
-- | --------------
+--- | --------------
 g clone *PATH* | git clone --recurse-submodules [-b *branch*] *PATH* <ul><li> Paths like "username/repo" will be expanded to a Github URL. </li> <li> Paths like "repo" will be expanded to a Github url if your username is stored in git config.\* </li> <li> Paths ending with #*branch* (the URL style used by NPM and Bower) will clone that branch.  </ul>
 g fetch | Fetches all remotes and fast-forwards local branches when possible
 g fetch *branches* | Fetches and fast-forwards the specified branches
@@ -89,7 +89,7 @@ g remote | Interactive prompt to add a remote.
 #### Miscellaneous
 
 g | git equivalent
-- | --------------
+--- | --------------
 g log | git log --graph --pretty=format:'%h - %d %s (%cr) <%an>' --abbrev-commit -10
 g ignore *file* | Adds *file* to the current .gitignore file
 g submodule | Finds all git repos underneath the main repo and makes them submodules
