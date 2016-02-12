@@ -35,7 +35,7 @@ git status \
 | grep -v 'nothing added to commit but untracked files present (use "git add" to track)'
 ;;
 
-= | stage)
+'=' | stage)
 if [ -z "$2" ]; then
     echo Staging all modified files
     git add -u :/
