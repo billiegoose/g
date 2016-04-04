@@ -1,0 +1,8 @@
+[package]
+name = "g"
+version = "0.1.0"
+authors = ["Will Hilton <wmhilton@gmail.com>"]
+
+[dependencies]
+git2 = "0.4"
+clap = "2"
