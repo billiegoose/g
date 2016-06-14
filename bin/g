@@ -131,12 +131,32 @@ else
 fi
 ;;
 
-'!' | commit)
-parent_commit="$(git log --abbrev-commit -1 --pretty=format:'%C(bold blue)%s%Creset %Cgreen(%cr)%Creset' 2>/dev/null)" && echo "Parent commit: $parent_commit"
+
+msg)
+msg_file="$(git_root)/.git/GITGUI_MSG"
+current="$(cat $msg_file 2>/dev/null)"
 if [ -z "$2" ]; then
-    read -ep 'Message: ' msg
+    # Interactive
+    parent_commit="$(git log --abbrev-commit -1 --pretty=format:'%C(bold blue)%s%Creset %Cgreen(%cr)%Creset' 2>/dev/null)" && echo "Parent commit: $parent_commit"
+    read -e -p 'Message: ' -i "$current" msg
+    echo "$msg" > "$msg_file"
+else
+    # Non-interactive
+    msg="${@:2}"
+    echo "$msg" > "$msg_file"
+fi
+;;
+
+'!' | commit)
+msg_file="$(git_root)/.git/GITGUI_MSG"
+current="$(cat $msg_file 2>/dev/null)"
+if [ -z "$2" ]; then
+    parent_commit="$(git log --abbrev-commit -1 --pretty=format:'%C(bold blue)%s%Creset %Cgreen(%cr)%Creset' 2>/dev/null)" && echo "Parent commit: $parent_commit"
+    # Interactive
+    read -e -p 'Message: ' -i "$current" msg
     git commit -m "$msg"
 else
+    # Non-interactive
     msg="${@:2}"
     git commit -m "$msg"
 fi
