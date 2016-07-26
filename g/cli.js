@@ -1,87 +1,107 @@
 #!/usr/bin/env node
-var sh = require('shelljs')
-var Git = require('nodegit')
-var program = require('commander')
-var inquirer = require('inquirer')
+'use strict'
+const Path = require('upath')
+const pkg = require(__dirname + '/package.json')
+const Git = require('nodegit')
+// Use https://github.com/thisconnect/nodegit-kit as a reference
+const vorpal = require('vorpal')()
+const glob = require('glob')
 
-program
-    .version('0.0.1')
-    .option('-i --interactive', 'Interactive mode')
-    .option('-l --log', 'Show git log')
-    .option('-b --branch', 'Show current branch')
-    .arguments('<cmd> [files]')
-    .action( (cmd, files) => {
-        console.log('hi', cmd, files)
-    } )
-    .parse(process.argv)
+let WorkingRepo = null
 
-if (program.interactive) {
-    inquirer.prompt([
-        {type: 'input', name: 'one', message: 'Hola type something:' },
-        {type: 'list', name: 'two', message: 'Select a file', choices: sh.ls()}
+vorpal
+.command('version')
+.description('Outputs version of g')
+.alias('v', 'ver')
+.action(function version (args, done) {
+  this.log(pkg.version)
+  done()
+})
 
-    ], function( answers ) {
-        console.log(answers)
-    });
-}
-
-if (program.branch) {
-    console.log('branch')
-    Git.Repository.discover('.', 0, '').then( (buf) => {
-        console.log(buf)
-        Git.Repository.open(buf).then( (repo) => {
-            repo.head().then( (ref) => {
-                console.log(ref.shorthand())    
-                console.log('end')
-            })
-        }).catch( (err) => {
-            console.log('error', err)
-        })
-    }).catch( (err) => {
-        console.log('error', err)
-    })
-}
-
-
-if (program.log) {
-  // Open the repository directory.
-  Git.Repository.open("..")
-  // Open the master branch.
-  .then(function(repo) {
-    return repo.getMasterCommit();
+vorpal
+.command('add [globs...]')
+.description('Add an untracked file')
+.alias('+')
+.autocomplete({data: untrackedFiles})
+.action(function add (args, done) {
+  if (args.globs === undefined) {
+    this.log('You must specify at least one file or directory to add. Maybe \'*\' ?')
+    return done()
+  }
+  globs(args.globs, (err, matches) => {
+    if (err) {
+      this.log('Error! ' + err.message)
+      return done()
+    }
+    this.log(matches)
+    return done()
   })
-  // Display information about commits on master.
-  .then(function(firstCommitOnMaster) {
-    // Create a new history event emitter.
-    var history = firstCommitOnMaster.history();
+})
 
-    // Create a counter to only show up to 9 entries.
-    var count = 0;
+vorpal
+.command('rm [globs...]')
+.description('Remove a tracked file')
+.alias('remove', '-')
+.action(function rm (args, done) {
+  this.log(args.globs)
+  done()
+})
 
-    // Listen for commit events from the history.
-    history.on("commit", function(commit) {
-      // Disregard commits past 9.
-      if (++count >= 9) {
-        return;
-      }
+function untrackedFiles (input, callback) {
+  globs(input + '*', (err, matches) => {
+    if (err) {
+      return callback()
+    } else {
+      // TODO: Optimize this to make it less laggy.
+      // Can we do a repo-wide status and compliment it with fs.watch?
+      filterByStatus(Git.Status.STATUS.WT_NEW, matches, callback)
+    }
+  })
+}
 
-      // Show the commit sha.
-      console.log("commit " + commit.sha());
+function filterByStatus (status, paths, callback) {
+  let files = paths.filter((path) => Git.Status.file(WorkingRepo, relativePath(path)) === status)
+  callback(files)
+}
 
-      // Store the author object.
-      var author = commit.author();
+let relativePath = (path) => Path.relative(Path.join(WorkingRepo.path(), '..'), Path.resolve(path))
 
-      // Display author information.
-      console.log("Author:\t" + author.name() + " <" + author.email() + ">");
+function globs (patterns, callback) {
+  if (typeof patterns === 'string') {
+    return glob(patterns, callback)
+  } else if (patterns.length === 1) {
+    return glob(patterns[0], callback)
+  } else if (patterns.length > 1) {
+    return glob('{' + patterns.join(',') + '}', callback)
+  }
+}
 
-      // Show the commit date.
-      console.log("Date:\t" + commit.date());
+function getRepo (callback) {
+  Git.Repository.discover('.', 0, '') // start_path, across_fs, ceiling_dirs
+  .then((buf) => {
+    Git.Repository.open(buf)
+    .then((repo) => {
+      callback(null, repo)
+    }).catch(callback)
+  }).catch(callback)
+}
 
-      // Give some space and show the message.
-      console.log("\n    " + commit.message());
-    });
+function getHead (repo, callback) {
+  repo.head()
+  .then((ref) => {
+    callback(null, ref.shorthand())
+  }).catch(callback)
+}
 
-    // Start emitting events.
-    history.start();
-  });
+if (!module.parent) {
+  getRepo((err, repo) => {
+    if (err) return vorpal.log('Error: ' + err)
+    WorkingRepo = repo
+    vorpal.log(Path.join(WorkingRepo.path(), '..'))
+    getHead(repo, (err, head) => {
+      if (err) return vorpal.log('Error: ' + err)
+      vorpal.delimiter(head + '>')
+      vorpal.show()
+    })
+  })
 }
