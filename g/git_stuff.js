@@ -11,7 +11,15 @@ function getRepo (opts, callback) {
   .then((buf) => {
     Git.Repository.open(buf)
     .then((repo) => {
-      callback(null, clone(opts, {repo: repo}))
+      repo.head()
+      .then((ref) => {
+        let root = {
+          repo: repo,
+          head: ref.shorthand(),
+          local_path: repo.workdir()
+        }
+        callback(null, clone(opts, root))
+      }).catch(callback)
     }).catch(callback)
   }).catch(callback)
 }

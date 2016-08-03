@@ -1,13 +1,14 @@
 #!/usr/bin/env node
+// I'm writing this in JavaScript because I hate myself, apparently.
 'use strict'
 const Path = require('upath')
 const pkg = require(__dirname + '/package.json')
-const Git = require('nodegit')
+const git = require('./git_stuff')
 // Use https://github.com/thisconnect/nodegit-kit as a reference
 const vorpal = require('vorpal')()
 const glob = require('glob')
 
-let WorkingRepo = null
+let repo = null
 
 vorpal
 .command('version')
@@ -54,17 +55,13 @@ function untrackedFiles (input, callback) {
     } else {
       // TODO: Optimize this to make it less laggy.
       // Can we do a repo-wide status and compliment it with fs.watch?
-      filterByStatus(Git.Status.STATUS.WT_NEW, matches, callback)
+      let files = matches.filter((path) => repo.status.new.indexOf(relativePath(path)) > -1)
+      callback(files)
     }
   })
 }
 
-function filterByStatus (status, paths, callback) {
-  let files = paths.filter((path) => Git.Status.file(WorkingRepo, relativePath(path)) === status)
-  callback(files)
-}
-
-let relativePath = (path) => Path.relative(Path.join(WorkingRepo.path(), '..'), Path.resolve(path))
+let relativePath = (path) => Path.relative(repo.local_path, Path.resolve(path))
 
 function globs (patterns, callback) {
   if (typeof patterns === 'string') {
@@ -76,32 +73,12 @@ function globs (patterns, callback) {
   }
 }
 
-function getRepo (callback) {
-  Git.Repository.discover('.', 0, '') // start_path, across_fs, ceiling_dirs
-  .then((buf) => {
-    Git.Repository.open(buf)
-    .then((repo) => {
-      callback(null, repo)
-    }).catch(callback)
-  }).catch(callback)
-}
-
-function getHead (repo, callback) {
-  repo.head()
-  .then((ref) => {
-    callback(null, ref.shorthand())
-  }).catch(callback)
-}
-
 if (!module.parent) {
-  getRepo((err, repo) => {
-    if (err) return vorpal.log('Error: ' + err)
-    WorkingRepo = repo
-    vorpal.log(Path.join(WorkingRepo.path(), '..'))
-    getHead(repo, (err, head) => {
-      if (err) return vorpal.log('Error: ' + err)
-      vorpal.delimiter(head + '>')
-      vorpal.show()
-    })
+  git.info({}, (err, info) => {
+    if (err) return vorpal.log(err)
+    repo = info
+    vorpal.log(repo)
+    vorpal.delimiter(repo.head + '>')
+    vorpal.show()
   })
 }
