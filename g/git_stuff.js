@@ -4,7 +4,7 @@
 const Git = require('nodegit')
 
 // Return a new object with the combined or overwritten properties
-const clone = (dest, src) => Object.assign({}, dest, src)
+const extend = (dest, src) => Object.assign({}, dest, src)
 
 function getRepo (opts, callback) {
   Git.Repository.discover('.', 0, '') // start_path, across_fs, ceiling_dirs
@@ -18,7 +18,7 @@ function getRepo (opts, callback) {
           head: ref.shorthand(),
           local_path: repo.workdir()
         }
-        callback(null, clone(opts, root))
+        callback(null, extend(opts, root))
       }).catch(callback)
     }).catch(callback)
   }).catch(callback)
@@ -43,7 +43,7 @@ function list_remotes (opts, callback) {
       remotes.push(rem.name)
       remote[rem.name] = rem
     }
-    callback(null, clone(opts, {remote: remote}))
+    callback(null, extend(opts, {remote: remote}))
     // TODO: move all the remote refs to their respective remote object.
   })
   .catch((err) => {
@@ -61,7 +61,7 @@ function list_refs (opts, callback) {
       tags: [],
       tag: {}
     }
-    opts = clone(opts, references)
+    opts = extend(opts, references)
     for (let ref of refs) {
       let r = {
         shorthand: ref.shorthand(),
@@ -105,7 +105,7 @@ function list_refs (opts, callback) {
       .then((buf) => {
         console.log(buf)
     */
-    callback(null, clone(opts, references))
+    callback(null, extend(opts, references))
   })
   .catch((err) => {
     console.log(err) // what to do...
@@ -151,7 +151,7 @@ function list_files (opts, callback) {
         }
       }
     }
-    callback(null, clone(opts, {status: status, stage: stage, paths: paths}))
+    callback(null, extend(opts, {status: status, stage: stage, paths: paths}))
   })
   .catch((err) => {
     console.log(err)
