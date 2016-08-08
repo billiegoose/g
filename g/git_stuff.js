@@ -2,6 +2,7 @@
 // I'm writing this in JavaScript because I am impossibly optimistic about performance?
 'use strict'
 const Git = require('nodegit')
+// Use https://github.com/thisconnect/nodegit-kit as a reference
 
 // Return a new object with the combined or overwritten properties
 const extend = (dest, src) => Object.assign({}, dest, src)
@@ -113,7 +114,7 @@ function list_refs (opts, callback) {
   })
 }
 
-function list_files (opts, callback) {
+function list_status (opts, callback) {
   opts.repo.getStatus()
   .then((statuses) => {
     let paths = {}
@@ -159,6 +160,60 @@ function list_files (opts, callback) {
   })
 }
 
+// NOTE: this is depth first recursion, but using async
+// promises, so I'm not sure what the performance characteristic is like.
+function ls_tree (treePromise) {
+  return new Promise((resolve, reject) => {
+    treePromise
+    .then((tree) => {
+      let mtree = {}
+      mtree.path = tree.path()
+      mtree.files = []
+      let promises = []
+      for (let entry of tree.entries()) {
+        let mentry = {}
+        mentry.path = entry.path()
+        mentry.sha = entry.sha()
+        if (entry.isFile()) {
+          mtree.files.push(mentry)
+        } else if (entry.isDirectory()) {
+          promises.push(ls_tree(entry.getTree()))
+        }
+      }
+      Promise.all(promises)
+      .then((mentries) => {
+        mtree.directories = mentries
+        resolve(mtree)
+      })
+      .catch((err) => {
+        reject(err)
+      })
+    })
+    .catch((err) => {
+      reject(err)
+    })
+  })
+}
+
+function list_root_tree (opts, callback) {
+  opts.repo.getHeadCommit()
+  .then((commit) => {
+    let treePromise = commit.getTree()
+    ls_tree(treePromise)
+    .then((mtree) => {
+      callback(null, extend(opts, {tree: mtree}))
+    })
+    .catch((err) => {
+      console.log(err)
+      callback(err)
+    })
+  })
+  .catch((err) => {
+    console.log(err)
+    callback(err)
+  })
+}
+
 module.exports.info = (opts, callback) => {
   getRepo(opts, (err, opts) => {
     if (err) return callback(err)
@@ -166,10 +221,13 @@ module.exports.info = (opts, callback) => {
       if (err) return callback(err)
       list_refs(opts, (err, opts) => {
         if (err) return callback(err)
-        list_files(opts, (err, opts) => {
+        list_status(opts, (err, opts) => {
           if (err) return callback(err)
-          delete opts.repo
-          callback(null, opts)
+          list_root_tree(opts, (err, opts) => {
+            if (err) return callback(err)
+            delete opts.repo
+            callback(null, opts)
+          })
         })
       })
     })
@@ -180,5 +238,6 @@ if (!module.parent) {
   module.exports.info({}, (err, info) => {
     if (err) return console.log('Error: ' + err)
     console.log(info)
+    console.log(JSON.stringify(info.tree, null, 2))
   })
 }

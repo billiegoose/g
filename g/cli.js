@@ -4,6 +4,7 @@
 const Path = require('upath')
 const pkg = require(__dirname + '/package.json')
 const git = require('./git_stuff')
+const globs = require('./globs')
 // Use https://github.com/thisconnect/nodegit-kit as a reference
 const vorpal = require('vorpal')()
 const glob = require('glob')
@@ -47,6 +48,21 @@ vorpal
   this.log(args.globs)
   done()
 })
+
+/* Types of things that should be autocompleted:
+untracked_file
+tracked_file
+staged_file
+local_branch
+remote_branch
+local_tag
+remote_tag
+local_hash
+remote_hash
+remote
+github_remote
+bitbucket_remote
+*/
 
 function untrackedFiles (input, callback) {
   globs(input + '*', (err, matches) => {
