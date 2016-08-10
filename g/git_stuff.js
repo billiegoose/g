@@ -20,94 +20,80 @@ const getRepo = watt(function * (opts, next) {
   return extend(opts, root)
 })
 
-function list_remotes (opts, callback) {
-  opts.repo.getRemotes()
-  .then((names) => {
-    return Promise.all(names.map((n) => opts.repo.getRemote(n)))
-  })
-  .then((remote_ary) => {
-    let remotes = []
-    let remote = {}
-    for (let r of remote_ary) {
-      let rem = {
-        name: r.name(),
-        url: r.url(),
-        pushurl: r.pushurl(),
-        branches: [],
-        branch: {}
-      }
-      remotes.push(rem.name)
-      remote[rem.name] = rem
-    }
-    callback(null, extend(opts, {remote: remote}))
-    // TODO: move all the remote refs to their respective remote object.
-  })
-  .catch((err) => {
-    console.log(err) // what to do...
-    callback(err)
-  })
-}
-
-function list_refs (opts, callback) {
-  opts.repo.getReferences(Git.Reference.TYPE.OID)
-  .then((refs) => {
-    let references = {
+const list_remotes = watt(function * (opts, next) {
+  let names = yield opts.repo.getRemotes(next)
+  let remote_ary = yield Promise.all(names.map((n) => opts.repo.getRemote(n)))
+  let remotes = []
+  let remote = {}
+  for (let r of remote_ary) {
+    let rem = {
+      name: r.name(),
+      url: r.url(),
+      pushurl: r.pushurl(),
       branches: [],
-      branch: {},
-      tags: [],
-      tag: {}
+      branch: {}
     }
-    opts = extend(opts, references)
-    for (let ref of refs) {
-      let r = {
-        shorthand: ref.shorthand(),
-        name: ref.name(),
-        target: ref.target().tostrS()
-      }
-      if (ref.isBranch()) {
-        opts.branches.push(r.shorthand)
-        opts.branch[r.shorthand] = r
-      } else if (ref.isTag()) {
-        opts.tags.push(r.shorthand)
-        opts.tag[r.shorthand] = r
-      } else if (ref.isRemote()) {
-        // Put branch on correct remote
-        let tmp = r.shorthand.split('/')
-        let remote = tmp[0]
-        let branchname = tmp.slice(1).join('/')
-        // ignore orphaned remote branches
-        if (opts.remote[remote]) {
-          opts.remote[remote].branches.push(branchname)
-          opts.remote[remote].branch[branchname] = r
-        }
-      }
-      // Unimplemented Reference Types:
-      // symbolic refs: (isSymbolic() and its antonym isConcrete())
-      //   appear to exist purely as a hack for HEAD so we'll
-      //   ignore that possibility.
-      //   source: http://stackoverflow.com/a/5000668/2168416
-      // notes: (isNote()) is indeed a git feature,
-      //   but I have yet to hear of ANYONE who uses them.
-      //   Pushing and pulling notes is not turned on by default, for one.
-      //   source: https://git-scm.com/2010/08/25/notes.html
-      //   At one point, Github displayed them, but that was removed by late 2014.
-      //   source: https://github.com/blog/707-git-notes-display
+    remotes.push(rem.name)
+    remote[rem.name] = rem
+  }
+  return extend(opts, {remote: remote})
+  // TODO: move all the remote refs to their respective remote object.
+})
+
+const list_refs = watt(function * (opts, next) {
+  let refs = yield opts.repo.getReferences(Git.Reference.TYPE.OID, next)
+  let references = {
+    branches: [],
+    branch: {},
+    tags: [],
+    tag: {}
+  }
+  opts = extend(opts, references)
+  for (let ref of refs) {
+    let r = {
+      shorthand: ref.shorthand(),
+      name: ref.name(),
+      target: ref.target().tostrS()
     }
-    // TODO: Get upstream settings for this branch
-    /*
-    repo.config()
-    .then((config) => {
-      config.getStringBuf('branch.master.remote')
-      .then((buf) => {
-        console.log(buf)
-    */
-    callback(null, extend(opts, references))
-  })
-  .catch((err) => {
-    console.log(err) // what to do...
-    callback(err)
-  })
-}
+    if (ref.isBranch()) {
+      opts.branches.push(r.shorthand)
+      opts.branch[r.shorthand] = r
+    } else if (ref.isTag()) {
+      opts.tags.push(r.shorthand)
+      opts.tag[r.shorthand] = r
+    } else if (ref.isRemote()) {
+      // Put branch on correct remote
+      let tmp = r.shorthand.split('/')
+      let remote = tmp[0]
+      let branchname = tmp.slice(1).join('/')
+      // ignore orphaned remote branches
+      if (opts.remote[remote]) {
+        opts.remote[remote].branches.push(branchname)
+        opts.remote[remote].branch[branchname] = r
+      }
+    }
+    // Unimplemented Reference Types:
+    // symbolic refs: (isSymbolic() and its antonym isConcrete())
+    //   appear to exist purely as a hack for HEAD so we'll
+    //   ignore that possibility.
+    //   source: http://stackoverflow.com/a/5000668/2168416
+    // notes: (isNote()) is indeed a git feature,
+    //   but I have yet to hear of ANYONE who uses them.
+    //   Pushing and pulling notes is not turned on by default, for one.
+    //   source: https://git-scm.com/2010/08/25/notes.html
+    //   At one point, Github displayed them, but that was removed by late 2014.
+    //   source: https://github.com/blog/707-git-notes-display
+  }
+  // TODO: Get upstream settings for this branch
+  /*
+  repo.config()
+  .then((config) => {
+    config.getStringBuf('branch.master.remote')
+    .then((buf) => {
+      console.log(buf)
+  */
+  return extend(opts, references)
+})
 
 function list_status (opts, callback) {
   opts.repo.getStatus()
@@ -155,79 +141,43 @@ function list_status (opts, callback) {
   })
 }
 
-// NOTE: this is depth first recursion, but using async
-// promises, so I'm not sure what the performance characteristic is like.
-function ls_tree (treePromise) {
-  return new Promise((resolve, reject) => {
-    treePromise
-    .then((tree) => {
-      let mtree = {}
-      mtree.path = tree.path()
-      mtree.files = []
-      let promises = []
-      for (let entry of tree.entries()) {
-        let mentry = {}
-        mentry.path = entry.path()
-        mentry.sha = entry.sha()
-        if (entry.isFile()) {
-          mtree.files.push(mentry)
-        } else if (entry.isDirectory()) {
-          promises.push(ls_tree(entry.getTree()))
-        }
-      }
-      Promise.all(promises)
-      .then((mentries) => {
-        mtree.directories = mentries
-        resolve(mtree)
-      })
-      .catch((err) => {
-        reject(err)
-      })
-    })
-    .catch((err) => {
-      reject(err)
-    })
-  })
-}
+// NOTE: this is depth first recursion, with some async weirdness.
+const ls_tree = watt(function * (commit, next) {
+  let tree = yield commit.getTree(next)
+  let mtree = {}
+  mtree.path = tree.path()
+  mtree.files = []
+  mtree.directories = []
+  for (let entry of tree.entries()) {
+    let mentry = {}
+    mentry.path = entry.path()
+    mentry.sha = entry.sha()
+    if (entry.isFile()) {
+      mtree.files.push(mentry)
+    } else if (entry.isDirectory()) {
+      // recurse
+      ls_tree(entry, next.parallel())
+    }
+  }
+  mtree.directories = yield next.sync()
+  return mtree
+})
 
-function list_root_tree (opts, callback) {
-  opts.repo.getHeadCommit()
-  .then((commit) => {
-    let treePromise = commit.getTree()
-    ls_tree(treePromise)
-    .then((mtree) => {
-      callback(null, extend(opts, {tree: mtree}))
-    })
-    .catch((err) => {
-      console.log(err)
-      callback(err)
-    })
-  })
-  .catch((err) => {
-    console.log(err)
-    callback(err)
-  })
-}
+const list_root_tree = watt(function * (opts, next) {
+  let commit = yield opts.repo.getHeadCommit(next)
+  let mtree = yield ls_tree(commit)
+  return extend(opts, {tree: mtree})
+})
 
-module.exports.info = (opts, callback) => {
-  getRepo(opts, (err, opts) => {
-    if (err) return callback(err)
-    list_remotes(opts, (err, opts) => {
-      if (err) return callback(err)
-      list_refs(opts, (err, opts) => {
-        if (err) return callback(err)
-        list_status(opts, (err, opts) => {
-          if (err) return callback(err)
-          list_root_tree(opts, (err, opts) => {
-            if (err) return callback(err)
-            delete opts.repo
-            callback(null, opts)
-          })
-        })
-      })
-    })
-  })
-}
+module.exports.info = watt(function * (opts, next) {
+  opts = yield getRepo(opts, next)
+  opts = yield list_remotes(opts, next)
+  opts = yield list_refs(opts, next)
+  opts = yield list_status(opts, next)
+  opts = yield list_root_tree(opts, next)
+  delete opts.repo
+  return opts
+})
 
 if (!module.parent) {
   module.exports.info({}, (err, info) => {
