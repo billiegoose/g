@@ -2,28 +2,23 @@
 // I'm writing this in JavaScript because I am impossibly optimistic about performance?
 'use strict'
 const Git = require('nodegit')
+const watt = require('watt')
 // Use https://github.com/thisconnect/nodegit-kit as a reference
 
 // Return a new object with the combined or overwritten properties
 const extend = (dest, src) => Object.assign({}, dest, src)
 
-function getRepo (opts, callback) {
-  Git.Repository.discover('.', 0, '') // start_path, across_fs, ceiling_dirs
-  .then((buf) => {
-    Git.Repository.open(buf)
-    .then((repo) => {
-      repo.head()
-      .then((ref) => {
-        let root = {
-          repo: repo,
-          head: ref.shorthand(),
-          local_path: repo.workdir()
-        }
-        callback(null, extend(opts, root))
-      }).catch(callback)
-    }).catch(callback)
-  }).catch(callback)
-}
+const getRepo = watt(function * (opts, next) {
+  let buf = yield Git.Repository.discover('.', 0, '', next) // start_path, across_fs, ceiling_dirs
+  let repo = yield Git.Repository.open(buf, next)
+  let ref = yield repo.head(next)
+  let root = {
+    repo: repo,
+    head: ref.shorthand(),
+    local_path: repo.workdir()
+  }
+  return extend(opts, root)
+})
 
 function list_remotes (opts, callback) {
   opts.repo.getRemotes()
