@@ -222,7 +222,7 @@ done < "$TEMP/merged.branches"
 git for-each-ref --sort=-committerdate refs/remotes \
 --format='%(HEAD) %(color:green)%(committerdate:relative)%(color:reset)|%(color:red)%(objectname:short)%(color:reset)|%(color:blue)%(refname:short)%(color:reset)' > "$TEMP/remote.branches"
 # Print them in columns
-cat "$TEMP/local.branches" "$TEMP/remote.branches" | column -ts'|'
+cat "$TEMP/local.branches" "$TEMP/remote.branches" | vl -s'\|'
 ;;
 
 fetch)
