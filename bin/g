@@ -384,9 +384,17 @@ then
             --ancestry-path \
             --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' \
             HEAD...HEAD~$2
-    read -p 'Message: ' msg
+    echo "The parent commit will be:"
+    git log --abbrev-commit \
+            --color \
+            --graph \
+            --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' \
+            -n 1 \
+            HEAD~$2
+    def_msg="$(git show -s --format=%s HEAD~$(($2-1)))"
+    read -e -p 'Message: ' -i "$def_msg" msg
     git stash save --include-untracked --quiet 'get-squash autostash'
-    git reset --soft HEAD~$(($2+1))
+    git reset --soft HEAD~$2
     git commit -m "$msg"
     git stash pop --quiet
 else
