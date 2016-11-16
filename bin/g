@@ -196,12 +196,19 @@ fi
 # else
 git branch -d "$2"
 if [[ "$?" -ne 0 ]]; then
-    if confirm 'Are sure you want to delete this branch?'; then
+    if confirm 'This branch hasn'"'"'t been merged. Are sure you want to delete this branch?'; then
         echo ''
         git branch -D "$2"
     else
         echo ''
     fi
+fi
+if confirm 'Would you like to delete this branch on the remote as well?'; then
+    echo ''
+    git push origin --delete "$2"
+else
+    echo ''
+    echo 'OK, just thought I'"'"'d ask.'
 fi
 ;;
 
@@ -241,9 +248,19 @@ for local_branch in $branches; do
     remote_branch=$(git config --get branch.$local_branch.merge | sed 's:refs/heads/::')
     # Git throws an error if we try the fetch command on the current branch. Sheesh
     if [ "$current_branch" = "$local_branch" ]; then
-        git merge --ff-only $remote/$remote_branch
+        git merge --ff-only "$remote/$remote_branch"
     else
-        git fetch $remote $remote_branch:$local_branch
+        if git fetch $remote $remote_branch:$local_branch; then
+            echo "fetched $local_branch <- $remote/$remote_branch"
+        # Detect and delete branches not on remote
+        else
+            if confirm "Failed to fast forward local branch '$local_branch'. Do you want to delete the local branch if it's merged?"; then
+                echo ''
+                git branch -d "$local_branch"
+            else
+                echo ''
+            fi
+        fi
     fi
 done
 ;;
