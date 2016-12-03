@@ -283,25 +283,28 @@ diff)
 # Note: we use --ignore-space-change with every diff because
 # changing the amount of indentation of large chunks of code
 # is common in Python and CoffeeScript.
+# Update: I now use --ignore-all-space, because I mostly work
+# in JavaScript, HTML, and CSS, and other people are terrible
+# at indenting their code.
 if [ -z "$2" ]; then
     echo 'Compare working tree with HEAD'
-    git diff --ignore-space-change HEAD
+    git diff --ignore-all-space --ignore-blank-lines HEAD
 else
     if [ -z "$3" ]; then
         if [ "$2" = 'STAGE' ]; then
             echo 'Compare working tree with stage'
-            git diff --ignore-space-change
+            git diff --ignore-all-space --ignore-blank-lines
         else
             echo "Compare working tree with $2"
-            git diff --ignore-space-change "$2"
+            git diff --ignore-all-space --ignore-blank-lines "$2"
         fi
     else
         if [ "$2" = 'STAGE' ]; then
             echo "Compare stage with $3"
-            git diff --cached --ignore-space-change "$3"
+            git diff --cached --ignore-all-space --ignore-blank-lines "$3"
         else
             echo "Compare $2 with $3"
-            git diff --ignore-space-change "$2" "$3"
+            git diff --ignore-all-space --ignore-blank-lines "$2" "$3"
         fi
     fi
 fi
@@ -309,7 +312,7 @@ fi
 
 review)
 echo 'Compare stage with HEAD'
-git diff --cached --ignore-space-change HEAD
+git diff --cached --ignore-all-space --ignore-blank-lines HEAD
 ;;
 
 ^ | push)
