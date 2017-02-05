@@ -212,6 +212,31 @@ else
 fi
 ;;
 
+mvbranch)
+echo 'Move branch'
+if [ -z "$2" ]; then
+    echo '! Specify branch name'
+    exit;
+fi
+if ! git rev-parse --quiet --verify "$2" >/dev/null
+then
+    echo "Branch not found: '$2'"
+    exit;
+fi
+if [ -z "$3" ]; then
+    echo '! Specify commit or reference you want to become the branch head'
+    exit;
+fi
+# else
+# Get local branch name
+local_branch=$(git rev-parse --abbrev-ref HEAD)
+if [[ "$2" = "$local_branch" ]]; then
+  git reset --hard "$3"
+else
+  git branch -f "$2" "$3"
+fi
+;;
+
 branches)
 # Make a temporary directory
 TEMP=$(mktemp -d)
@@ -425,8 +450,21 @@ fi
 log)
 git log --color \
         --graph \
-        --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' \
-        --abbrev-commit -10 "${@:2}"
+        --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset %C(bold blue)<name-%G?>{<%an>}{%GS}</name>%Creset <color-%G?>{%Cgreen}{%Cred}</color><validity-%G?>%Creset' \
+        --abbrev-commit -10 "${@:2}" \
+| sed 's/<name-N>{\(.*\)}{\(.*\)}<\/name>/\1/g' \
+| sed 's/<name-.>{\(.*\)}{\(.*\)}<\/name>/\2/g' \
+| sed 's/<color-N>{\(.*\)}{\(.*\)}<\/color>//g' \
+| sed 's/<color-[GUX]>{\(.*\)}{\(.*\)}<\/color>/\1/g' \
+| sed 's/<color-[YBE]>{\(.*\)}{\(.*\)}<\/color>/\2/g' \
+| sed 's/<validity-N>//g' \
+| sed 's/<validity-G>/good/g' \
+| sed 's/<validity-U>/unknown/g' \
+| sed 's/<validity-X>/expired/g' \
+| sed 's/<validity-Y>/expired/g' \
+| sed 's/<validity-B>/bad/g' \
+| sed 's/<validity-E>/error/g'
+echo ''
 ;;
 
 submodule)
