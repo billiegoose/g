@@ -367,6 +367,16 @@ else
     echo "I will run git push --set-upstream ${remote} ${remote_branch}"
     git push --set-upstream ${remote} ${remote_branch}
 fi
+tags="$(git tag --points-at HEAD | tr '\n' ' ')"
+if [ ! -z "$tags" ] && confirm "Would you like to push these tags (${tags}) to the remote as well?"; then
+    local_branch=$(git rev-parse --abbrev-ref HEAD)
+    remote=$(git config --get branch.$local_branch.remote)
+    echo ''
+    git push ${remote} ${tags}
+else
+    echo ''
+    echo 'OK, just thought I'"'"'d ask.'
+fi
 ;;
 
 remote)
