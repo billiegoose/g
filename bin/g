@@ -183,32 +183,46 @@ fi
 ;;
 
 rmbranch)
-echo 'Delete branch'
 if [ -z "$2" ]; then
     echo '! Specify branch name'
     exit;
 fi
+echo "Delete branch $2"
 if ! git rev-parse --quiet --verify "$2" >/dev/null
 then
     echo "Branch not found: '$2'"
     exit;
 fi
 # else
-git branch -d "$2" >/dev/null
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+if [[ "$current_branch" == "$2" ]]; then
+    if confirm "You are currently on the branch '$2'! Do you want me to switch to 'master'?"; then
+        echo ''
+        git checkout master
+    else
+        echo ''
+    fi
+fi
+
+git branch -d "$2" &>/dev/null
 if [[ "$?" -ne 0 ]]; then
-    if confirm 'This branch hasn'"'"'t been merged. Are sure you want to delete this branch?'; then
+    if confirm "The branch '$2' hasn't been merged. Are sure you want to delete this branch?"; then
         echo ''
         git branch -D "$2"
     else
         echo ''
     fi
 fi
-if confirm 'Would you like to delete this branch on the remote as well?'; then
-    echo ''
-    git push origin --delete "$2"
-else
-    echo ''
-    echo 'OK, just thought I'"'"'d ask.'
+
+ls $(git_root)/.git/refs/remotes/*/$2 &>/dev/null
+if [[ "$?" -eq 0 ]]; then
+    if confirm 'Would you like to delete this branch on the remote as well?'; then
+        echo ''
+        git push origin --delete "$2"
+    else
+        echo ''
+        echo 'OK, just thought I'"'"'d ask.'
+    fi
 fi
 ;;
 
