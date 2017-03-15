@@ -194,7 +194,7 @@ then
     exit;
 fi
 # else
-git branch -d "$2"
+git branch -d "$2" >/dev/null
 if [[ "$?" -ne 0 ]]; then
     if confirm 'This branch hasn'"'"'t been merged. Are sure you want to delete this branch?'; then
         echo ''
