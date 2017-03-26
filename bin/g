@@ -167,6 +167,10 @@ uncommit)
     git reset --soft HEAD~1
 ;;
 
+amend | ammend)
+git commit --amend --no-edit
+;;
+
 '@' | branch)
 echo 'Switching to branch'
 if [ -z "$2" ]; then
