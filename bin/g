@@ -312,6 +312,10 @@ for local_branch in $branches; do
 done
 ;;
 
+ff)
+git pull --ff-only
+;;
+
 ignore)
 GIT_ROOT=$(git_root)
 CWD=$(pwd)
