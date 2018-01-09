@@ -153,7 +153,11 @@ current="$(cat $msg_file 2>/dev/null)"
 if [ -z "$2" ]; then
     parent_commit="$(git log --abbrev-commit -1 --pretty=format:'%C(bold blue)%s%Creset %Cgreen(%cr)%Creset' 2>/dev/null)" && echo "Parent commit: $parent_commit"
     # Interactive
-    read -e -p 'Message: ' -i "$current" msg
+    if [[ "$OSTYPE" == darwin* ]]; then
+        read -e -p 'Message: ' msg
+    else
+        read -e -p 'Message: ' -i "$current" msg
+    fi
     git commit -m "$msg"
 else
     # Non-interactive
@@ -465,7 +469,12 @@ then
             -n 1 \
             HEAD~$2
     def_msg="$(git show -s --format=%s HEAD~$(($2-1)))"
-    read -e -p 'Message: ' -i "$def_msg" msg
+    if [[ "$OSTYPE" == darwin* ]]; then
+        echo "Original message: $def_msg"
+        read -e -p 'Message: ' msg
+    else
+        read -e -p 'Message: ' -i "$def_msg" msg
+    fi
     git stash save --include-untracked --quiet 'get-squash autostash'
     git reset --soft HEAD~$2
     git commit -m "$msg"
