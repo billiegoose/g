@@ -508,6 +508,12 @@ git log --color \
 echo ''
 ;;
 
+hist)
+git reflog HEAD@{now} --date=relative \
+|awk '$5 ~ /checkout:/ { sub(/HEAD@/, "", $2); sub(/:/, "", $4); if (!seen[$10]++) print $10, $2, $3, $4}'
+echo ''
+;;
+
 submodule)
 CWD=$(pwd)
 gitroot=$(git_root)

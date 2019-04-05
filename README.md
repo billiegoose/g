@@ -96,6 +96,7 @@ g log | git log --graph --pretty=format:'%h - %d %s (%cr) <%an>' --abbrev-commit
 g ignore *file* | Adds *file* to the current .gitignore file
 g submodule | Finds all git repos underneath the main repo and makes them submodules
 g squash *n* | Squash the last *n* commits into one commit. <ul><li> Prompts for a new commit message. </li><li> Moves HEAD without actually deleting the old commits. </li></ul>
+g hist | List branches you've recently visited and when (I was about to call it `g recent` but I mistyped and did `g reset`... hence the new name.)
 
 #### Shortcuts
 Because sometimes you just want to type one letter.
