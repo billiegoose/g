@@ -268,9 +268,9 @@ git branch --merged | sed 's/^..//' > "$TEMP/merged.branches"
 # Pretty-print local branches
 git for-each-ref --sort=-committerdate refs/heads \
 --format='%(HEAD) %(color:green)%(committerdate:relative)%(color:reset)|%(color:red)%(objectname:short)%(color:reset)|%(color:yellow)%(refname:short)%(color:reset) -> %(upstream:short)' > "$TEMP/local.branches"
-sed -i 's/ -> $/ -> \?/g' "$TEMP/local.branches"
+sed -i'' -e 's/ -> $/ -> \?/g'  "$TEMP/local.branches"
 while read -r branch; do
-    sed -i "s~${branch}\b.*~\0|(merged)~" "$TEMP/local.branches"
+    sed -i'' -e 's~'${branch}'[[:>:]].*~&|(merged)~' "$TEMP/local.branches"
 done < "$TEMP/merged.branches"
 # Pretty-print remote branches
 git for-each-ref --sort=-committerdate refs/remotes \
