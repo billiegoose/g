@@ -85,6 +85,7 @@ g fetch *branches* | Fetches and fast-forwards the specified branches
 g push | pushes to upstream. <ul><li> If upstream not set, prompt user to name a remote branch. </li> <li> If multiple remotes exist, prompt for which remote to use. </li></ul>
 g remote | Interactive prompt to add a remote.
 g ff | git pull --ff-only
+g fff | deletes the local branch and rechecks it out (useful when remote branch has been force-pushed and can't be fast-forwarded)
 
 \* To save your Github username where `get` can see it: `git config --global github.user your_user_name`
 

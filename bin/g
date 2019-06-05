@@ -316,6 +316,17 @@ ff)
 git pull --ff-only
 ;;
 
+fff)
+# Get local branch name
+local_branch=$(git rev-parse --abbrev-ref HEAD)
+# Move HEAD pointer
+git checkout HEAD~0 &>/dev/null
+# Delete local branch
+git branch -D "$local_branch" &>/dev/null
+# Re-checkout the local branch
+git checkout "$local_branch"
+;;
+
 ignore)
 GIT_ROOT=$(git_root)
 CWD=$(pwd)
