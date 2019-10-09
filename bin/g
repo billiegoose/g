@@ -416,6 +416,11 @@ else
 fi
 ;;
 
+^^ | push!)
+echo 'Force push with lease'
+git push --force-with-lease
+;;
+
 remote)
 read -ep "What is the URL for this remote repo?: " remote_url
 read -ep "Choose an alias for this remote [origin]: " remote_alias

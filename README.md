@@ -83,6 +83,7 @@ g clone *PATH* | git clone --recurse-submodules [-b *branch*] *PATH* <ul><li> Pa
 g fetch | Fetches all remotes and fast-forwards local branches when possible
 g fetch *branches* | Fetches and fast-forwards the specified branches
 g push | pushes to upstream. <ul><li> If upstream not set, prompt user to name a remote branch. </li> <li> If multiple remotes exist, prompt for which remote to use. </li></ul>
+g push! | git push --force-with-lease
 g remote | Interactive prompt to add a remote.
 g ff | git pull --ff-only
 g fff | deletes the local branch and rechecks it out (useful when remote branch has been force-pushed and can't be fast-forwarded)
@@ -112,6 +113,7 @@ g ! | g commit
 g @ | g branch
 g # | g tag
 g ^ | g push
+g ^^ | g push!
 
 
 ### Why?
