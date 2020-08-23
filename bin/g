@@ -21,6 +21,14 @@ confirm () {
     esac
 }
 
+confirmYes () {
+    read -r -n 1 -p "${1:-Are you sure? [Y/n]} " response
+    case $response in
+        [nN]) false ;;
+        *) true ;;
+    esac
+}
+
 case "$1" in
 '?' | status)
 # TODO: Display help if not inside a repo
@@ -154,11 +162,23 @@ if [ -z "$2" ]; then
     parent_commit="$(git log --abbrev-commit -1 --pretty=format:'%C(bold blue)%s%Creset %Cgreen(%cr)%Creset' 2>/dev/null)" && echo "Parent commit: $parent_commit"
     # Interactive
     if [[ "$OSTYPE" == darwin* ]]; then
-        read -e -p 'Message: ' msg
+        if [[ -n "$current" ]]; then
+            if confirmYes "Message: $current [Y/n]"; then
+                msg="$current"
+            else
+                echo ""
+                read -e -p 'Message: ' msg
+            fi
+        else
+            read -e -p 'Message: ' msg
+        fi
     else
         read -e -p 'Message: ' -i "$current" msg
     fi
+    echo "$msg" > $msg_file
+    set -e
     git commit -m "$msg"
+    rm $msg_file
 else
     # Non-interactive
     msg="${@:2}"
@@ -379,9 +399,22 @@ git diff --cached --ignore-all-space --ignore-blank-lines HEAD
 
 ^ | push)
 echo 'Pushing'
+tags="$(git tag --points-at HEAD | tr '\n' ' ')"
+follow_tags=''
+if [ ! -z "$tags" ]; then
+    if confirm "Would you like to push these tags (${tags}) to the remote as well?"; then
+        local_branch=$(git rev-parse --abbrev-ref HEAD)
+        remote=$(git config --get branch.$local_branch.remote)
+        echo ''
+        follow_tags='--follow-tags'
+    else
+        echo ''
+        echo 'OK, just thought I'"'"'d ask.'
+    fi
+fi
 # Check to see if upstream is set.
 if git rev-parse --abbrev-ref @{upstream} >/dev/null ; then
-    git push
+    git push ${follow_tags}
 else
     # Get local branch name
     local_branch=$(git rev-parse --abbrev-ref HEAD)
@@ -401,18 +434,8 @@ else
     if [ "$remote_branch" = "" ]; then
         remote_branch="$local_branch"
     fi
-    echo "I will run git push --set-upstream ${remote} ${remote_branch}"
-    git push --set-upstream ${remote} ${remote_branch}
-fi
-tags="$(git tag --points-at HEAD | tr '\n' ' ')"
-if [ ! -z "$tags" ] && confirm "Would you like to push these tags (${tags}) to the remote as well?"; then
-    local_branch=$(git rev-parse --abbrev-ref HEAD)
-    remote=$(git config --get branch.$local_branch.remote)
-    echo ''
-    git push ${remote} ${tags}
-else
-    echo ''
-    echo 'OK, just thought I'"'"'d ask.'
+    echo "I will run git push --set-upstream ${remote} ${remote_branch} ${follow_tags}"
+    git push --set-upstream ${remote} ${remote_branch} ${follow_tags}
 fi
 ;;
 
