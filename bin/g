@@ -33,7 +33,7 @@ case "$1" in
 '?' | status)
 # TODO: Display help if not inside a repo
 # TODO: figure out how to git config --global color.status always automatically.
-git status \
+git -c color.status=always status \
 | grep -v 'On branch' \
 | grep -v '(use "git push" to publish your local commits)' \
 | grep -v '(use "git reset HEAD <file>..." to unstage)' \
