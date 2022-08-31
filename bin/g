@@ -175,10 +175,10 @@ if [ -z "$2" ]; then
     else
         read -e -p 'Message: ' -i "$current" msg
     fi
-    echo "$msg" > $msg_file
+    echo "$msg" > "$msg_file"
     set -e
     git commit -m "$msg"
-    rm $msg_file
+    rm "$msg_file"
 else
     # Non-interactive
     msg="${@:2}"
