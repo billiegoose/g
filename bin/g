@@ -476,11 +476,14 @@ then
     url=${url%#*}
 fi
 
-# Default to master branch if no branch in URL
-clone_branch=${clone_branch:-master}
-
-echo "Cloning $clone_branch branch of $url"
-git clone --recurse-submodules -b $clone_branch "$url"
+# Clone specified branch, or default branch if not specified
+if [ -z "$clone_branch" ]; then
+    echo "Cloning default branch of $url"
+    git clone --recurse-submodules "$url"
+else
+    echo "Cloning $clone_branch branch of $url"
+    git clone --recurse-submodules -b "$clone_branch" "$url"
+fi
 ;;
 
 squash)
