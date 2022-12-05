@@ -419,8 +419,8 @@ else
     # Get local branch name
     local_branch=$(git rev-parse --abbrev-ref HEAD)
     # Check for multiple remotes
-    remote_count=$(git remote show | wc -l)
-    remotes=$(git remote show | tr '\n' ' ' | sed 's/\s*$//g')
+    remote_count=$(git remote show | wc -l | sed 's/[[:space:]]*//g')
+    remotes=$(git remote show | tr '\n' ' ' | sed 's/[[:space:]]*$//g')
     if [ "$remote_count" = "0" ]; then
         echo "No remotes configured yet"
         exit
