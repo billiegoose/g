@@ -29,6 +29,16 @@ confirmYes () {
     esac
 }
 
+columnify () {
+    if which column > /dev/null; then
+        column -ts'|'
+    elif which vl > /dev/null; then
+        vl -s'\|'
+    else
+        sed 's/|/\t/g'
+    fi
+}
+
 case "$1" in
 '?' | status)
 # TODO: Display help if not inside a repo
@@ -296,7 +306,7 @@ done < "$TEMP/merged.branches"
 git for-each-ref --sort=-committerdate refs/remotes \
 --format='%(HEAD) %(color:green)%(committerdate:relative)%(color:reset)|%(color:red)%(objectname:short)%(color:reset)|%(color:blue)%(refname:short)%(color:reset)' > "$TEMP/remote.branches"
 # Print them in columns
-cat "$TEMP/local.branches" "$TEMP/remote.branches" | vl -s'\|'
+cat "$TEMP/local.branches" "$TEMP/remote.branches" | columnify
 ;;
 
 fetch)
